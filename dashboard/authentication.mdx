@@ -1,35 +1,37 @@
 ---
 title: "Authentication"
-description: "How TrueParser handles identity for both management and parsing operations."
+description: "How dashboard users and tenant apps authenticate against the current backend."
 ---
 
-TrueParser implements a strict separation between **Management Access** (human users in the dashboard), **Identity Authority** (API authentication), and **Parsing Operations** (document processing).
+TrueParser separates human dashboard access from machine access used by tenant apps.
 
----
+## Authentication Model
 
-## 1. Management Access (Dashboard)
+There are two main authentication paths:
 
-The **TrueParser Dashboard** is the administrative UI where your organization manages its ecosystem.
+1. dashboard sign-in for tenant users
+2. machine-to-machine token issuance for tenant apps
+
+## 1. Dashboard Sign-In
+
+The dashboard is used to manage tenants, apps, plans, and billing.
 
 - **URL**: `https://dashboard.trueparser.com`
-- **Identity**: Dashboard access is restricted to **Tenant Users**.
-- **Credentials**: Email and password.
-- **Purpose**: Manage tenants, create applications, assign plans, and view billing.
+- **Users**: tenant users
+- **Current host setup**: Google authentication is configured in the host
 
----
+This is the management side of the control plane.
 
-## 2. Machine Access (API Auth)
+## 2. Machine Access For Tenant Apps
 
-To access the parsing engines, your backend services must obtain a security token from the **Identity Authority**.
+Backend services authenticate by exchanging app credentials for an access token.
 
-- **Auth Endpoint**: `https://admin-api.trueparser.com/connect/token`
-- **Identity**: API access is granted to **Tenant Applications**.
-- **Credentials**: `client_id` and `client_secret`.
-- **Flow**: OAuth 2.0 Machine-to-Machine (Client Credentials).
+- **Token endpoint**: `https://admin-api.trueparser.com/connect/token`
+- **Identity**: tenant application
+- **Credentials**: `client_id` and `client_secret`
+- **Flow**: OAuth 2.0 `client_credentials`
 
-### Obtaining a Token
-
-Exchange your application credentials for a security token:
+### Requesting A Token
 
 ```bash
 curl -X POST https://admin-api.trueparser.com/connect/token \
@@ -37,66 +39,70 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
   -d "grant_type=client_credentials" \
   -d "client_id=YOUR_CLIENT_ID" \
   -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "scope=TrueParser.API offline_access"
+  -d "scope=TrueParser.API"
 ```
 
-### Token Lifetimes and Rotation
+### Access Token Lifetime
 
-| Token Type | Lifetime | Behavior |
-| :--- | :--- | :--- |
-| **Access Token** | 15 Minutes | Used as a Bearer token in the `Authorization` header for parsing. |
-| **Refresh Token** | 14 Days | Used to obtain a new access token without re-sending the secret. |
+The access token lifetime is configured to 15 minutes.
 
-<Important>
-  **Refresh Token Rotation.** TrueParser uses **sliding rotation**. Every time you use a refresh token to obtain a new access token, the system issues a **new refresh token** and invalidates the previous one. This provides a continuous session while ensuring high security.
-</Important>
+## Token Claims
 
----
+For tenant apps, the access token is enriched with claims from tenant and app metadata.
 
-## 3. Parsing Operations (The Engine)
+Common claims include:
 
-The **TrueParser API** handles document ingestion and parsing orchestration using the credentials issued by the Identity Authority.
+- `sub`
+- `tenantid`
+- `appId`
+- `licenseRegionCode`
+- `dbCode`
+- `allowed_domain_1`, `allowed_domain_2`, `allowed_domain_3`
+- `limits` (expressed in Document Units)
 
-- **Parsing API**: `https://api.trueparser.com`
-- **Authorization**: Bearer JWT issued by `admin-api.trueparser.com`.
-
----
-
-## Security Token Claims
-
-Your access token is a signed JWT containing your usage quotas (captured as Document Units).
+Example:
 
 ```json
 {
   "iss": "https://admin-api.trueparser.com",
   "sub": "your_client_id",
-  "aud": "TrueParser.API",
   "tenantid": "3f9a6c6e-...",
   "appId": "7b1c0d8c-...",
   "licenseRegionCode": "aws-us-east-1",
-  "allowedEngines": ["PDF", "GIS", "CAD", "SQL"],
+  "dbCode": "region-db-code",
+  "allowed_domain_1": "localhost:3000",
   "limits": {
-    "maxUnitsPerMonth": 5000,
-    "maxDocumentSizeMb": 100,
-    "requestsPerMinute": 60
+    "maxUnitsPerMonth": 1000,
+    "maxUnitsPerWeek": 500,
+    "maxUnitsPerDay": 250,
+    "maxUnitsPerHour": 100,
+    "maxApiRequestsPerMinute": 10,
+    "advancedExtraction": false,
+    "dynamicFeatures": {}
   }
 }
 ```
 
-<Tip>
-  **Enabling Quotas.** Your application credentials will always issue a token. To include parsing limits in your `limits` claim, ensure a plan is selected for the application in the dashboard.
-</Tip>
+## What Is Required For Token Issuance
 
----
+For tenant apps, token issuance depends on app and tenant state.
 
-## Token Renewal
+- the app must exist
+- the app must be enabled
+- the tenant must be active
+- the app must have a license region
+- the app must have a stamped database code
 
-Renew your session using the `refresh_token` flow:
+## Plan Impact On Tokens
 
-```bash
-curl -X POST https://admin-api.trueparser.com/connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=refresh_token" \
-  -d "refresh_token=YOUR_REFRESH_TOKEN" \
-  -d "client_id=YOUR_CLIENT_ID"
-```
+Plan assignment affects the `limits` claim.
+
+- no plan assigned: token issuance can still succeed, but `limits` is omitted
+- usable plan assigned: token includes `limits`
+- retired plan assigned: token issuance is blocked
+
+## Related Docs
+
+- [Onboarding](/dashboard/onboarding)
+- [App Setup and Credentials](/dashboard/app-setup)
+- [Billing](/dashboard/billing)

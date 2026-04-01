@@ -1,106 +1,79 @@
 ---
 title: "Onboarding"
-description: "Set up your tenant and create your first TrueParser application based on the current codebase behavior."
+description: "Create a tenant, wait for activation, and set up your first app."
 ---
 
-TrueParser uses a tenant-isolated orchestration model. This guide reflects the actual onboarding workflow as implemented in the platform.
+This page describes the current developer onboarding flow for the control plane.
 
----
+If your goal is to get from signup to a working backend integration, this is the path to follow.
 
 ## 1. Create Your Tenant Account
 
 Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Authentication**: The current setup supports **Email and Password** sign-in for human administrators.
-- **Initial State**: New tenant registrations start in a **Pending Activation** state.
-- **Welcome Email**: A welcome email is queued immediately upon registration to confirm your account is in our queue.
+- new tenant registrations start in `Pending Activation`
+- a welcome email is queued after registration
+- the host currently has Google authentication configured for dashboard sign-in
 
----
+At this point, you have a tenant record, but it is not ready for machine access yet.
 
-## 2. Wait for Tenant Activation
+## 2. Wait For Activation
 
-To maintain platform stability, new tenants require a one-time activation.
+New tenants are activated in a separate step.
 
-- **Status Change**: Activation is handled as a separate administrative step.
-- **Activation Email**: When your tenant is activated, you will receive an automated email with your login details.
+- when the tenant becomes active, an activation email is sent
+- that email includes the configured platform URL
 
----
+Until the tenant is active, tenant apps under that tenant cannot complete normal token issuance.
 
 ## 3. Create Your First App
 
-An App contains the configuration and credentials your backend uses to authenticate and connect to the TrueParser API.
+Your app is the machine identity your backend will use to request tokens.
 
 <Steps>
-  <Step title="Create Application">
-    Click on **Apps** in the sidebar and select **Add Application**.
+  <Step title="Create The App">
+    Open **Apps** in the dashboard and create a new tenant app.
   </Step>
-  <Step title="Region & Data Residency">
-    Provide a name (e.g., `production-parser`) and select your **License
-    Region**. TrueParser automatically handles the regional isolation for your
-    app's metadata.
+  <Step title="Choose A Region">
+    Select a valid license region. The backend resolves the region and stamps the app with the region and database metadata it needs later.
   </Step>
-  <Step title="Security Configuration">
-    In the app settings, add your **Allowed Domains** (e.g., `localhost:3000`,
-    `myapp.com`). This is a critical security step that protects your application **usage quota**.
+  <Step title="Add Allowed Domains">
+    Optionally add up to three allowed domains such as `localhost:3000` or `api.example.com`.
   </Step>
-  <Step title="Capture Credentials">
-    Once created, you will see your `client_id` and `client_secret`. **Copy them
-    immediately.**
-    <Warning>
-      The `client_secret` is only shown once. If lost, you must regenerate it,
-      which invalidates any service currently using the old secret.
-    </Warning>
+  <Step title="Save Credentials">
+    Capture the generated `client_id` and plaintext `client_secret` returned at creation time.
   </Step>
 </Steps>
 
----
+<Warning>
+  The plaintext `client_secret` is shown only once when the app is created. If you lose it, regenerate the secret from the dashboard. The regenerated secret is also shown only once, and the old secret is invalidated.
+</Warning>
 
-## 4. Choose a License Region
+## 4. Understand The Required App State
 
-Selecting a **License Region** is a mandatory step during application creation.
+For a tenant app to issue tokens successfully:
 
-- **Database Stamping**: The system resolves your chosen region to a physical **License Region** record.
-- **Active Shard Requirement**: App creation requires an active database shard for that region. If no active database is available, creation will fail.
-- **Technical Identifier**: The resolved database code is stamped onto your application. You will see this identifier (`dbCode`) in your issued access tokens.
+1. the app must be enabled
+2. the tenant must be active
+3. the app must have a license region
+4. the app must have a stamped database code
 
----
+## 5. Assign A Plan If You Need Quotas
 
-## 5. Configure Allowed Domains
+Plans are optional for token issuance, but they matter if your backend depends on the `limits` claim.
 
-Allowed domains are stored as security metadata to prevent unauthorized third-party cross-origin requests.
+- no plan assigned: token can still be issued, but no `limits` claim is added
+- usable plan assigned: token includes `limits` (expressed in Document Units)
+- retired plan assigned: token issuance is blocked
 
-- **Normalization**: The platform automatically cleans your domain entries (stripping protocols and trailing slashes).
-- **Validation**: Wildcards (`*`) are not supported, but `localhost` (with port) is permitted.
-- **Capacity**: You can configure up to three unique domains.
+There is also a current one-free-plan rule per tenant.
 
----
+## 6. Use The App Credentials From Your Backend
 
-## 6. Understand Token Issuance
+Once the tenant is active and the app is created, your backend can request a token using `client_credentials`.
 
-A tenant application can issue security tokens only when the platform's safety criteria are met. Unlike Dashboard access, API authentication uses the Identity Authority endpoint.
+See:
 
-1. The App must be **Enabled**.
-2. The Tenant must be **Active**.
-3. The App must have a **License Region** and **Database Code** assigned.
-
-<Note>
-  **Plan Behavior.** An application can always issue a token. However, to receive the usage quotas (limits) required for the Parsing API, the application must be linked to an active plan in the dashboard.
-</Note>
-
----
-
-## 7. Manage Secrets Safely
-
-You must store your application's `client_secret` securely.
-
-- **Regeneration**: If a secret is lost or compromised, you must use the **Regenerate client_secret** flow in the dashboard.
-- **Instant Invalidation**: Regenerating a secret issues a new one immediately and invalidates the old one. Any services using the previous secret will lose access until updated.
-
----
-
-## 8. Assigning a Plan
-
-Plans determine the usage quotas injected into your tokens.
-
-- **The One Free Rule**: Each organization is limited to exactly **one** application on a Free plan.
-- **Scaling**: Paid plans use our integrated billing flow and affect the `limits` claim in your issued tokens.
+- [Authentication](/dashboard/authentication)
+- [App Setup and Credentials](/dashboard/app-setup)
+- [Billing](/dashboard/billing)

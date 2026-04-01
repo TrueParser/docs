@@ -1,38 +1,50 @@
 ---
 title: "License Regions"
-description: "How to choose the correct License Region for your application."
+description: "How license regions are validated and used when tenant apps are created."
 ---
 
-During the creation of your App, you must select a **License Region**. This is one of the most important architectural decisions for your project.
+You must select a license region when you create a tenant app.
 
-A License Region is a specific geographic area (e.g., `aws-us-east-1`) where TrueParser maintains a dedicated presence and data storage cluster.
+A license region is a host-managed record identified by a region code. It is used during app creation to resolve the region-specific database metadata the app needs later for token issuance.
 
----
+## What Happens During App Creation
 
-### Why Does It Matter?
+At app creation time, the backend:
 
-1.  **Data Residency**: All metadata associated with your App—including billing logs, plan limits, and routing info—is stored in isolated infrastructure within that specific geography.
-2.  **Latency**: For the best performance, you should select the region closest to your primary user base. This minimizes response times when your backend requests security tokens from the dashboard.
-3.  **Regulatory Compliance**: If your project must adhere to data sovereignty laws (like GDPR in Europe), selecting the correct License Region ensures your management data never leaves that geographic boundary.
+1. validates that the region code exists
+2. checks that the region is active
+3. loads the active region database for that region
+4. stamps the app with both `LicenseRegionId` and `DbCode`
 
----
+## Why This Matters
 
-## Available License Regions
+License region data is part of the token issuance path for tenant apps.
 
-| Code                 | Location              |
-| :------------------- | :-------------------- |
-| `aws-ap-northeast-1` | Asia Pacific (Tokyo)  |
-| `aws-ap-south-1`     | Asia Pacific (Mumbai) |
-| `aws-eu-west-1`      | Europe (Ireland)      |
-| `aws-us-east-1`      | US East (N. Virginia) |
-| `aws-us-east-2`      | US East (Ohio)        |
-| `aws-us-west-2`      | US West (Oregon)      |
+- token issuance requires a license region
+- token issuance also requires the stamped `DbCode`
+- `licenseRegionCode` is added to the access token
+- `dbCode` is added to the access token
+- the selected region is used to choose the database where the app's license and usage data is stored
 
-### Can I Change My Region?
+## When App Creation Fails
+
+App creation fails if:
+
+- the region code does not exist
+- the region is inactive
+- the region has no active region database
+
+## Can The Region Be Changed Later
 
 <Warning>
-  **The License Region is a "set-once" property.** Because your App's data is
-  physically provisioned in regional storage, it cannot be migrated to another region after the App is created.
+  The current tenant app update flow does not expose license region changes. In
+  practice, treat region selection as a create-time decision.
 </Warning>
 
-If you need to change regions, you must create a new App and migrate your user traffic to the new credentials.
+If you need a different region, the safe path is to create a new app with the target region and move traffic to the new credentials.
+
+## Related Docs
+
+- [App Setup and Credentials](/dashboard/app-setup)
+- [Authentication](/dashboard/authentication)
+- [Onboarding](/dashboard/onboarding)

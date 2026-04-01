@@ -1,73 +1,82 @@
 ---
 title: "Dashboard Overview"
-description: "Understand how TrueParser manages your account, applications, and authentication tokens."
+description: "Core control plane concepts for tenants, apps, plans, regions, and token issuance."
 ---
 
-The TrueParser infrastructure is divided into the Dashboard and the Parsing Engine tier.
+The dashboard is the control plane for tenants and tenant apps.
 
-The Dashboard is responsible for the management, security, and regional orchestration of your ecosystem.
+The UI may be deployed at `dashboard.trueparser.com`, while the backend can be deployed separately, for example at `admin-api.trueparser.com`.
 
----
+This page introduces the core concepts developers need before using the other docs.
 
-## Core Elements
+## Main Concepts
 
-The Dashboard manages four primary entities.
+### Tenant
 
-### 1. Tenant
+A tenant represents an organization boundary.
 
-A **Tenant** represents your organization or root account.
+- top-level container for resources, billing, and team members
+- tenant status affects whether tenant apps can issue tokens
 
-- Top-level container for resources, billing, and team members.
-- Each tenant is securely isolated from other organizations.
+### App
 
-### 2. Apps
+Each tenant can create multiple apps.
 
-Within a tenant, you can create multiple **Apps**. Each app represents a specific product or environment.
+- each app gets its own `client_id` and `client_secret`
+- each app is tied to a license region at creation time
+- each app stores region, database, plan, and allowed-domain metadata
+- each app can be enabled or disabled independently
 
-- **Identity**: Each app holds its own unique `client_id` and `client_secret`.
-- **Data Residency**: Every app is pinned to a **License Region** during creation.
-- **Data Isolation**: Document metadata is stored in isolated, regional infrastructure.
+### Plan
 
-### 3. Plans
+A plan defines the limits that may be added to the app's token.
 
-A **Plan** defines the performance characteristics and usage limits for an app.
+- current plan fields include **unit-based quotas** and `maxApiRequestsPerMinute`
+- plans are assigned per app
+- a missing plan does not block token issuance
+- a retired assigned plan does block token issuance
 
-- **Limits**: Controls maximum **Document Units**, storage sizes, and operations per minute.
-- **Flexibility**: Plans can be upgraded or downgraded through the dashboard.
+### License Region
 
-### 4. Infrastructure
+License regions are host-managed records used during app creation.
 
-TrueParser maintains a global parsing network to ensure high availability and intelligent routing.
-
-- **Security**: Manage allowed domains for secure ingestion.
-- **Performance**: We manage a global fleet of parsing nodes to ensure low-latency ingestion.
-- **Storage**: Configure tenant-isolated storage for persistence.
-
----
+- app creation validates the region code
+- the selected region must have an active region database
+- the resolved `DbCode` is stamped onto the app
 
 ## Security Model
 
-Your App's security is defined by **Allowed Domains**.
+Apps can store up to three allowed domains.
 
-- **Domain Isolation**: Each app supports up to 3 domains (e.g., `app.example.com`, `localhost:3000`).
-- **Edge Validation**: Parsing nodes check the `Origin` header of every incoming request. If they do not match, the request is rejected instantly.
+- domains are normalized before storage
+- wildcards are rejected
+- `localhost` with an optional port is allowed
+- when present, allowed domains are added to the issued access token as claims
 
----
+## Token Issuance Model
 
-## The Token Lifecycle
+Tenant apps use OAuth 2.0 `client_credentials` against the token endpoint.
 
-TrueParser uses standard OAuth 2 flows for account management and orchestration.
+- the token endpoint is `/connect/token`
+- access token lifetime is configured to 15 minutes
+- the token includes tenant, app, region, and database claims
+- if the app has a usable plan, the token also includes `limits` (measured in **Document Units**)
 
-- **Machine-to-machine**: Your backend server exchanges app credentials for a token, which is then passed to your client applications.
-- **Administrative Access**: For interactive dashboard access using trusted identifiers.
+Typical M2M claims include:
 
-### Best Practice: Token Rotation
+- `tenantid`
+- `appId`
+- `licenseRegionCode`
+- `dbCode`
+- `allowed_domain_1`, `allowed_domain_2`, `allowed_domain_3`
+- `limits` when a usable plan is assigned
 
-We support refresh tokens to minimize the exposure of your sensitive credentials.
+## Suggested Reading Order
 
-1. **Access Token**: Short-lived. Used by your clients to connect.
-2. **Refresh Token**: Long-lived. Used by your backend to request new access tokens without needing to re-send the `client_secret`.
+If you are new to the platform, read these next:
 
-<Note>
-  Your authentication service should fetch the `client_secret` once during a cold start to obtain a token pair, then use the refresh token for all subsequent rotations. This allows you to purge the sensitive secret from active memory.
-</Note>
+1. [Onboarding](/dashboard/onboarding)
+2. [App Setup and Credentials](/dashboard/app-setup)
+3. [Authentication](/dashboard/authentication)
+4. [Billing](/dashboard/billing)
+5. [License Regions](/dashboard/license-regions)

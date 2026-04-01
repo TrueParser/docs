@@ -1,60 +1,109 @@
 ---
 title: "App Setup and Credentials"
-description: "How to manage your app's credentials and keep your secrets secure."
+description: "Create a tenant app, understand the required fields, and manage its credentials safely."
 ---
 
-Every app in TrueParser should be linked to a plan to be functional. 
+This page covers the app setup flow for tenant applications created from the dashboard.
 
-- **No Plan Assigned**: Your app can still issue tokens, but they will not contain the processing limits or permissions required to parse documents.
-- **Retired Plan Assigned**: Token issuance is blocked. You must switch to an active plan to restore access.
+Tenant apps are used for machine-to-machine authentication against the backend. They are created as confidential clients and are intended for backend services, not browser-only clients.
 
----
+<Note>
+  An app can issue tokens without a plan, but the token will not include the
+  `limits` claim. If the app is assigned a retired plan, token issuance is
+  blocked. All limits are expressed in **Document Units**.
+</Note>
+
+## What An App Represents
+
+Each app is an isolated machine identity under a tenant.
+
+- it has its own `client_id` and `client_secret`
+- it is tied to one license region at creation time
+- it stores the region-backed `DbCode` used during token issuance
+- it can be enabled or disabled independently
+- it can optionally have a plan assigned later
 
 ## Creation Workflow
 
-1. **Select License Region**: Choose the geographic location for your app's management data in the dashboard. This determines where your license, plan limits, and document pinning metadata are stored.
-2. **App Name**: Provide a unique identifier for your application.
-3. **Capture Credentials**: Once created, you will see your `client_id` and `client_secret`. Copy them immediately.
+When you create an app in the dashboard, the backend creates a confidential OpenIddict client for the current tenant.
+
+<Steps>
+  <Step title="Choose A Region">
+    Select a valid license region. The backend validates that the region exists,
+    is active, and has an active region database available.
+  </Step>
+  <Step title="Set A Name">
+    Enter a display name for the app. App names must be unique within the
+    tenant.
+  </Step>
+  <Step title="Add Optional URLs">
+    Redirect and post-logout URLs are optional. If supplied, they must be valid
+    absolute URIs.
+  </Step>
+  <Step title="Add Allowed Domains">
+    You can optionally store up to three allowed domains on the app.
+  </Step>
+  <Step title="Capture Credentials">
+    After creation, the app returns a generated `client_id` and plaintext
+    `client_secret`.
+  </Step>
+</Steps>
 
 <Warning>
-  **The License Region is fixed at creation.** App creation requires an **Active Database Shard** for that region. If no active database is available, creation will fail.
+  App creation fails if the selected region does not have an active region
+  database.
 </Warning>
 
----
+## What Gets Stored On The App
 
-## Accessing Credentials
+In addition to the OpenIddict client record, the app stores tenant-specific metadata used later during token issuance.
 
-You can find your credentials in the **Apps** section of the dashboard:
+- `client_id`
+- `client_secret`
+- `LicenseRegionId`
+- `DbCode`
+- `AllowedDomain1`, `AllowedDomain2`, `AllowedDomain3`
+- enabled or disabled state
+- optional `PlanId`
 
-1. Click on your app's name.
-2. In the **Overview** tab, you will find your `client_id`.
-3. The `client_secret` is visible in plaintext only during initial creation or after a regeneration.
+## Allowed Domain Rules
 
----
+Allowed domains are normalized and validated before they are saved.
 
-## Security Best Practice: Use-Once Pattern
+- `http://` and `https://` are stripped
+- trailing `/` is removed
+- wildcards are rejected
+- `localhost` is allowed, including `localhost:<port>`
+- duplicate domains are rejected
+- ports must be in the valid range
 
-We recommend a "use-once" architectural pattern for your `client_secret`. This minimizes the risk of secret exposure.
+Examples:
 
-Instead of your auth service reading the `client_secret` from a database for every token request, follow this flow:
+- `https://app.example.com/` becomes `app.example.com`
+- `http://localhost:3000/` becomes `localhost:3000`
 
-1. **Cold Start**: Your auth service starts and retrieves the `client_secret` from a secure vault.
-2. **Bootstrap**: Call the token endpoint with the secret to get an initial access token plus refresh token.
-3. **Discard**: The service can now discard the `client_secret` from its local memory.
-4. **Maintenance**: For all subsequent requests, use the refresh token to obtain new access tokens.
+## Accessing Credentials Later
 
-This way, the `client_secret` is only active in your infrastructure for a few seconds.
+The dashboard continues to expose app metadata after creation.
 
----
+- `client_id` remains available
+- plaintext `client_secret` is returned at creation time and again after secret regeneration
 
-## Rotating Secrets
+## Regenerating The Secret
 
-Security is dynamic. If you suspect a `client_secret` has been compromised, you should rotate it immediately:
+If a secret is lost or exposed, regenerate it from the dashboard.
 
-- Navigate to your app's **Settings**.
-- Click **Regenerate client_secret**.
-- Update your auth service with the new secret and restart it.
+- a new plaintext `client_secret` is generated
+- the old secret stops working immediately
+- every service using the old secret must be updated
 
-<Warning>
-  Regenerating a secret invalidates the old one instantly. Any service attempting to use the old secret or a refresh token associated with it will receive an authorization error.
-</Warning>
+<Tip>
+  Store the `client_secret` in your own secret manager. Treat it like any other
+  backend credential.
+</Tip>
+
+## Related Docs
+
+- [Authentication](/dashboard/authentication)
+- [License Regions](/dashboard/license-regions)
+- [Billing](/dashboard/billing)

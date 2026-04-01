@@ -1,61 +1,94 @@
 ---
 title: "Plan Assignment and Billing"
-description: "How to scale your app and manage subscriptions."
+description: "How plans are assigned to apps and how the billing flow works."
 ---
 
-> [!IMPORTANT]
-> **TrueParser is Currently in Beta.** During this period, the platform is **free to use** for all approved tenants. We offer a generous **Beta Plan** that allows for high-volume technical parsing.
-> 
-> Please note that as a beta product, the system may have quirks and is **not yet suitable for critical or production-sensitive data**.
+Plans are assigned per app.
 
-Every app in TrueParser should be linked to a plan to be functional. 
+<Note>
+  No plan assigned: the app can still issue tokens, but no `limits` claim is
+  added. Retired plan assigned: token issuance is blocked.
+</Note>
 
-- **No Plan Assigned**: Your app can still issue tokens, but they will not contain the processing limits or permissions required to parse documents.
-- **Retired Plan Assigned**: Token issuance is blocked. You must switch to an active plan to restore access.
+## What Billing Controls
 
----
+Billing is tied to plan assignment on a tenant app.
 
-## Beta Plan
+- free plans can be assigned directly
+- paid plans use the payment provider flow
+- changing plans may either assign immediately or create a billing session, depending on the current app state
 
-To support developers during our launch phase, we offer a generous Beta tier:
+## Assigning Or Changing A Plan
 
-- **Unlimited Access**: Each account can assign the Beta plan to their applications.
-- **High Thresholds**: The Beta plan includes significantly higher parsing limits than our future standard tiers to encourage thorough testing.
-- **Feedback**: We encourage reporting any issues or "quirks" to our team to help us reach production stability.
+Plan changes are initiated from the dashboard and applied to a specific app.
 
----
+### Backend Flow
 
-## Assigning or Changing a Plan
+1. load the target plan
+2. validate that the target plan can be assigned
+3. load the app's current plan and subscription state
+4. decide whether the change is direct or requires billing
 
-You can change an app's plan at any time through the **Plans** tab in the dashboard.
+## Free And Paid Plan Behavior
 
-### The Process
+### Free Plans
 
-1. Select your target plan.
-2. If moving to a paid plan for the first time, you will provide billing details via our secure provider.
-3. Once the plan is confirmed, the dashboard updates your app's metadata and synchronizes the new limits.
+Free plans can be assigned directly without a checkout session.
 
----
+If the app already has a paid subscription, the backend cancels that subscription and updates the app state before completing the free-plan assignment.
 
-## Understanding Proration
+### Paid Plans
 
-TrueParser uses standard SaaS billing logic to ensure you only pay for what you use:
+Paid plans use the payment provider flow.
 
-- **Free to Paid**: the change happens immediately, and you are charged for the upcoming billing cycle.
-- **Paid to Paid**: the change is prorated immediately based on usage.
+- if the app already has an active paid subscription, the backend requests a plan change on that subscription
+- if the app has no active paid subscription, the backend creates a checkout session
+- the final assignment is completed after the billing flow succeeds
 
----
+## One Free Plan Rule
+
+The current domain logic allows only one app with a free plan per tenant.
+
+If a tenant already has another app on a free plan, assigning a free plan to a second app fails.
 
 ## Subscription Status
 
-You can monitor your subscription health in the **Billing** section:
+The billing flow tracks subscription status on the app.
 
-| Status | Description |
-| :--- | :--- |
-| **Active** | Everything is running smoothly. |
-| **Past Due** | A payment attempt failed. You have a grace period to update your card. |
-| **Cancelled** | The app remains active until the end of the current period. |
+| Status        | Description                                        |
+| :------------ | :------------------------------------------------- |
+| **Pending**   | Billing setup has started but is not complete yet. |
+| **Active**    | The subscription is active.                        |
+| **OnHold**    | Payment method or billing action is required.      |
+| **Failed**    | The billing flow failed.                           |
+| **Cancelled** | The subscription was cancelled.                    |
+| **Expired**   | The subscription expired.                          |
 
 <Info>
-  Disabling or deleting an app does not automatically cancel a paid subscription. Always manage subscription status in the Billing tab before deleting resources.
+  Treat subscription management as a separate step from enabling, disabling, or
+  deleting an app.
 </Info>
+
+## Plan Status Rules
+
+The backend treats plan status differently depending on the operation.
+
+- `Active` plans can be assigned
+- `Draft` plans cannot be assigned
+- `Archived` plans cannot be assigned to a new app
+- `Retired` plans block token issuance for apps that still use them
+
+## Developer Notes
+
+For setup and troubleshooting, these are the most important rules:
+
+- assign a usable plan if you need the `limits` claim (measured in **Document Units**)
+- keep only one free-plan app per tenant
+- expect billing flow only for paid plans
+- if a paid app becomes `OnHold`, billing action is required before normal changes continue
+
+## Related Docs
+
+- [Onboarding](/dashboard/onboarding)
+- [Authentication](/dashboard/authentication)
+- [App Setup and Credentials](/dashboard/app-setup)
