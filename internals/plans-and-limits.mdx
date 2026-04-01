@@ -6,40 +6,6 @@ description: "How TrueParser enforces plan limits and what your application rece
 Every TrueParser application has resource limits defined by its plan. These limits are embedded in your JWT and enforced at connection time - no database lookup required.
 
 <Info>
-  TrueParser limits apply to concurrent usage only, not total storage or document count. You can have unlimited documents in your system. Limits only apply to how many are actively open and syncing at the same time.
-</Info>
-
----
-
-## Plan limits
-
-| Limit | Description |
-| --- | --- |
-| `maxConnections` | Total concurrent WebSocket connections across your entire application |
-| `maxDocuments` | Total concurrent active documents across your entire application |
-| `maxUsersPerDoc` | Maximum concurrent users inside a single document session |
-| `opsPerMinute` | Maximum CRDT operations per minute |
-
-See the [Pricing page](https://trueparser.com/pricing) for limit values per plan.
-
----
-
-## Enforcement
-
-### When limits are hit
-
-All connection limits are enforced at handshake. The connection is rejected before it is established - no active connections are dropped.
-
-| Limit | Close code | Message | Enforcement point |
-| --- | --- | --- | --- |
-| `maxConnections` | `4004` | `Connection limit exceeded: <LIMIT>` | Handshake |
-| `maxDocuments` | `4005` | `Document limit exceeded: <LIMIT> (active: <COUNT>)` | Document load |
-| `maxUsersPerDoc` | `4008` | `Document user limit exceeded: <LIMIT>` | Handshake |
-| `opsPerMinute` | `4006` | `Rate limit exceeded: <LIMIT> ops/min` | Active session |
-
-<Info>
-  `opsPerMinute` is the only limit that can be hit during an active session. When exceeded, the connection is dropped to protect sync integrity across all connected clients.
-</Info>
 
 ### Enforcement strategy
 
@@ -115,8 +81,11 @@ GET https://ws.trueparser.com/usage?token=YOUR_ACCESS_TOKEN
 
 | Field | Description |
 | --- | --- |
-| `usage.connections.current` | Total active WebSocket connections across all regions |
-| `usage.documents.current` | Total unique documents currently being synced |
+| Metric | Type | Description |
+| --- | --- | --- |
+| `usage.pages.current` | number | Total pages processed in the current month. |
+| `usage.requests.current` | number | Active API requests in the current window. |
+| `usage.bytes.current` | number | Total bytes processed in the current month. |
 | `status` | `healthy` below 75%, `warning` between 75-89%, `critical` at 90% or above |
 | `timestamp` | UTC time of the snapshot |
 

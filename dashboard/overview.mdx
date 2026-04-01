@@ -3,7 +3,7 @@ title: "Dashboard Overview"
 description: "Understand how TrueParser manages your account, applications, and authentication tokens."
 ---
 
-The TrueParser infrastructure is divided into the Dashboard and the managed sync layer.
+The TrueParser infrastructure is divided into the Dashboard and the Parsing Engine tier.
 
 The Dashboard is responsible for the management, security, and regional orchestration of your ecosystem.
 
@@ -40,22 +40,18 @@ A **Plan** defines the performance characteristics and usage limits for an app.
 
 TrueParser maintains a **Global Registry** for its physical infrastructure to ensure high availability and intelligent routing.
 
-- **Node management**: We manage a global fleet of WebSocket nodes.
-- **Regional orchestration**: The platform allows for zero-downtime maintenance and dynamic fleet scaling.
-- **Discovery backbone**: Our infrastructure powers the [Discovery API](/api-reference/discovery), resolving the best physical node for any document session in real time.
+- **Security**: Manage JWT signing keys and allowed domains for secure ingestion.
+- **Node management**: We manage a global fleet of parsing nodes to ensure low-latency ingestion.
+- **Storage**: Configure tenant-isolated storage for persistent results.
 
 ---
 
-## Security enforcement
+## Security model
 
-TrueParser defines security boundaries at the management layer that are then enforced at the network edge.
+Your App's security is defined by **Allowed Domains**.
 
-### Allowed domains
-
-To prevent token theft, you can pin an application to up to 3 specific domains.
-
-- **Baked-in security**: These domains are embedded directly into your JWT claims.
-- **Edge validation**: Managed sync nodes check the `Origin` header of every incoming connection against these claims. If they do not match, the connection is rejected instantly.
+- **Domain isolation**: Each app supports up to 3 domains (e.g., `app.example.com`, `localhost:3000`).
+- **Edge validation**: Parsing nodes check the `Origin` header of every incoming request against these claims. If they do not match, the request is rejected instantly.
 
 ---
 

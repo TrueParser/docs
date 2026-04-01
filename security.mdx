@@ -3,7 +3,10 @@ title: "Security and Hardening"
 description: "An overview of the security architecture and isolation models powering the TrueParser platform."
 ---
 
-TrueParser is engineered with a security-first philosophy, focusing on total isolation, cryptographic integrity, and proactive defense-in-depth across both the Dashboard and the managed sync layer.
+TrueParser is a unified orchestration platform for technical document parsing. This documentation is divided into two primary sections:
+
+1.  **[Platform Guides](/index)**: Introduction, Quickstart, and Dashboard guides.
+2.  **[API Reference](/api-reference/endpoints)**: Detailed endpoint documentation for document ingestion and lifecycle management.
 
 ---
 
@@ -13,7 +16,7 @@ TrueParser uses a hardened OAuth2 implementation to manage access across the pla
 
 ### Standardized flows
 
-- Client Credentials: Used for secure machine-to-machine communication and managed sync orchestration.
+- Client Credentials: Used for secure machine-to-machine communication and parsing orchestration.
 - Resource Owner Password: For interactive dashboard access using trusted identifiers.
 - Refresh Token: For secure session extension without re-exposing sensitive credentials.
 
@@ -58,7 +61,7 @@ Every encrypted key is tagged with a version identifier. This allows for:
 
 ## 4. Platform integrity and isolation
 
-Security is enforced at every layer of the stack, from API entry points to the WebSocket edge.
+Security is enforced at every layer of the stack, from API entry points to secure, tenant-isolated storage.
 
 ### Identity and permissions
 
@@ -76,7 +79,12 @@ Security is enforced at every layer of the stack, from API entry points to the W
 
 ### Origin-based whitelisting
 
-Stolen tokens are made useless through allowed domains. Managed sync nodes validate the browser's `Origin` header against claims baked directly into the JWT. Connections from unauthorized domains are rejected at the edge.
+Stolen tokens| Slots | Recommended Use |
+| --- | --- |
+| `allowed_domain_1` | Production, e.g., `myapp.com` |
+| `allowed_domain_2` | Staging, e.g., `staging.myapp.com` |
+| `allowed_domain_3` | Local development, e.g., `localhost:3000` |
+JWT. Connections from unauthorized domains are rejected at the edge.
 
 ### Data sovereignty
 

@@ -1,26 +1,11 @@
 ---
 title: "Error Reference"
-description: "Complete reference for TrueParser WebSocket close codes and Dashboard API errors."
+description: "Complete reference for Parsing Engine specific error codes and Dashboard API errors."
 ---
 
-## WebSocket close codes
+## Ingestion Error Codes
 
 TrueParser uses the `4000-4999` private use range to provide specific, actionable feedback to your client on every failed connection.
-
-| Code | Name | Description | What to do |
-| --- | --- | --- | --- |
-| `4001` | Missing Token | No JWT was provided in the handshake | Add the token via subprotocol, query parameter, or Auth header. See [Authentication](/authentication). |
-| `4002` | Invalid Token | Token is expired, malformed, or has an invalid signature | Refresh the token using your refresh token and reconnect. See [Token Renewal](/authentication#token-renewal). |
-| `4003` | Forbidden | Token does not match the tenant or application being accessed | Verify your `client_id` and `appId` are correct for this environment. |
-| `4004` | Connection Limit | Application has hit its total concurrent connection cap | Implement graceful degradation in your UI. Consider upgrading your plan. |
-| `4005` | Document Limit | Application has hit its total active document cap | Close unused document sessions. Consider upgrading your plan. |
-| `4006` | Rate Limit | Operations per minute threshold exceeded | Back off and reconnect after 30 seconds. Consider upgrading your plan. |
-| `4007` | Invalid Name | Document name violates naming rules | Use alphanumeric characters, hyphens, and underscores only. Max 255 characters. |
-| `4008` | Users Per Doc | Too many concurrent users on this document | Notify the user the document is full. Consider upgrading your plan. |
-| `4009` | Wrong Region | Document is active in another region | Parse the `REDIRECT:` URL from the close reason and reconnect to the supplied node URL. |
-
----
-
 ## Dashboard API errors
 
 Errors returned by `api.trueparser.com` for token and management API requests.

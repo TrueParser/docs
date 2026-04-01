@@ -4,10 +4,12 @@ This repository contains the source code for the official TrueParser documentati
 
 ## Project Overview
 
-TrueParser is a globally distributed Yjs sync infrastructure. This documentation is divided into two primary sections:
+TrueParser is a unified orchestration platform for technical document parsing. This documentation is divided into two primary sections:
 
-1.  **[Dashboard](/dashboard/overview)**: Management of tenants, apps, plans, and JWT authentication.
-2.  **[API Reference](/api-reference/introduction)**: Detailed endpoint documentation for Discovery, Usage, and WebSocket sync.
+1.  **[Platform Guides](/index)**: Introduction, Quickstart, and Dashboard guides.
+2.  **[API Reference](/api-reference/endpoints)**: Detailed endpoint documentation for document ingestion and lifecycle management.
+
+Join our [Discord](https://discord.gg/trueparser) to connect with the community.
 
 ---
 
