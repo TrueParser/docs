@@ -9,14 +9,28 @@ Every TrueParser application has usage quotas defined by its plan. These metrics
 
 ## What is a Document Unit?
 
-To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric:
+To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric. 
 
-| Parsing Engine | 1 Unit is defined as... |
-| :--- | :--- |
-| **Enterprise (PDF/Office)** | 1 Page |
-| **Messaging (PST/OST/EML/MSG)** | 1 Message |
-| **Database (SQL)** | 1 Statement |
-| **Geospatial (GIS/CAD)** | 1 File |
+### Unit Definitions
+
+| Parsing Engine | Description | Unit Count | `consumedUnitKind` |
+| :--- | :--- | :--- | :--- |
+| **Enterprise (PDF / OpenDoc)** | Standard Document Pages | 1 Unit per Page | `page` |
+| **Messaging (MailKit)** | Top-level Email/Item | 1 Unit per Message | `item` |
+| **Database (SQL)** | Executable Statement | 1 Unit per Statement | `statement` |
+| **Geospatial (GIS)** | Logical Vector/Raster Dataset | 1 Unit per Dataset | `file` |
+| **Engineering (CAD)** | Processed CAD Drawing | 1 Unit per Document | `file` |
+
+---
+
+## Job Completion Metrics
+
+When a parsing job completes, the system records the consumption for that specific operation. This information is available in the job's completion metadata:
+
+- **`consumedUnits`**: The integer count of units processed (e.g., total pages or statements).
+- **`consumedUnitKind`**: The type of unit consumed (e.g., `page`, `item`, `file`).
+
+These values are used to update your global tenant usage and are visible in the **Usage API**.
 
 ---
 

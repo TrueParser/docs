@@ -85,16 +85,21 @@ The access token is a signed JWT containing your application's identity and reso
 | `allowedEngines` | List of parser types enabled for this application. |
 | `limits` | Object containing your plan-specific usage quotas (measured in **Document Units**). |
 
-### What is a Document Unit?
+---
 
-To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric:
+## What is a Document Unit?
 
-| Parsing Engine | 1 Unit is defined as... |
-| :--- | :--- |
-| **Enterprise (PDF/Office)** | 1 Page |
-| **Messaging (PST/OST/EML/MSG)** | 1 Message |
-| **Database (SQL)** | 1 Statement |
-| **Geospatial (GIS/CAD)** | 1 File |
+To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric. 
+
+When a parsing job completes, the system records the consumption in the job metadata as `consumedUnits` and `consumedUnitKind`.
+
+| Parsing Engine | Unit Definition | `consumedUnitKind` |
+| :--- | :--- | :--- |
+| **Enterprise (PDF / OpenDoc)** | 1 Page | `page` |
+| **Messaging (MailKit)** | 1 Top-level Item | `item` |
+| **Database (SQL)** | 1 Statement | `statement` |
+| **Geospatial (GIS)** | 1 Logical Dataset | `file` |
+| **Engineering (CAD)** | 1 Processed Document | `file` |
 
 <Note>
   If no plan is assigned, the token will be issued successfully but will not include your usage limits, making it unusable for parsing. If a **Retired** plan is assigned, token issuance is blocked by the system.
