@@ -23,6 +23,18 @@ To provide a unified pricing and limit model across diverse technical formats, T
 
 ---
 
+## Feature Gating
+
+In addition to volume-based quotas, certain high-resource operations are restricted by plan tier:
+
+| Feature | Engine | Restriction |
+| :--- | :--- | :--- |
+| **Binary Attachments** | Messaging (MailKit) | **Enterprise Only** |
+| **Advanced Vision Pipeline** | Technical PDF | **Standard / Enterprise** |
+| **Cross-Dialect Lineage** | Database (SQL) | **Enterprise Only** |
+
+---
+
 ## Job Completion Metrics
 
 When a parsing job completes, the system records the consumption for that specific operation. This information is available in the job's completion metadata:
