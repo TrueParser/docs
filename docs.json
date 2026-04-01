@@ -44,7 +44,6 @@
             "pages": [
               "index",
               "quickstart",
-              "authentication",
               "security"
             ]
           },
@@ -53,6 +52,7 @@
             "icon": "network-wired",
             "pages": [
               "dashboard/overview",
+              "dashboard/authentication",
               "dashboard/onboarding",
               "dashboard/license-regions",
               "dashboard/app-setup",

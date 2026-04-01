@@ -11,13 +11,16 @@ By decoupling parsing logic into specialized, independently versioned engines, T
 
 <CardGroup cols={3}>
   <Card title="Unified API" icon="layer-group">
-    One endpoint for all your parsing needs, regardless of the underlying file format.
+    One endpoint for all your parsing needs, regardless of the underlying file
+    format.
   </Card>
   <Card title="Streaming-First" icon="bolt">
-    Native support for NDJSON streams ensures memory-efficient processing of even the largest documents.
+    Native support for NDJSON streams ensures memory-efficient processing of
+    even the largest documents.
   </Card>
   <Card title="Format Agnostic" icon="file-import">
-    Built-in detection and routing for GIS, CAD, SQL, PDF, and Enterprise Office formats.
+    Built-in detection and routing for CAD, SQL, PDF, and Enterprise Office
+    formats.
   </Card>
 </CardGroup>
 
@@ -29,13 +32,16 @@ TrueParser orchestrates specialized engines to deliver deep extraction capabilit
 
 <CardGroup cols={2}>
   <Card title="GIS & Geospatial" icon="map">
-    SHP, GeoJSON, GPKG, KML, and more. Preserve spatial geometry and metadata.
+    Preserve geometry (points, lines, polygons) and spatial metadata (CRS,
+    attributes).
   </Card>
   <Card title="CAD & Engineering" icon="drafting-compass">
-    DWG and DXF. Maintain entities and technical layers in structured JSON.
+    DWG and DXF. Preserve entities, layers, blocks, and attributes in structured
+    JSON.
   </Card>
   <Card title="SQL & Database" icon="database">
-    Multi-dialect support for PostgreSQL, T-SQL, Snowflake, BigQuery, and 10+ others.
+    Multi-dialect support for PostgreSQL, T-SQL, Snowflake, BigQuery, and 10+
+    others.
   </Card>
   <Card title="Email & Archives" icon="envelope">
     PST, OST, EML, and MSG. Extract body, metadata, and attachments.
@@ -55,22 +61,29 @@ TrueParser orchestrates specialized engines to deliver deep extraction capabilit
 TrueParser handles the cross-cutting concerns that modern data pipelines require, allowing you to focus on the extracted data rather than the parsing mechanics.
 
 ### High-Performance Architecture
+
 Designed for high-volume forensics and enterprise ingestion:
+
 - **Zero-Disk Buffering**: Direct memory-to-stream processing reduces I/O overhead.
 - **Lazy Attachment Loading**: Large email attachments are only read when explicitly requested, minimizing memory footprint.
 - **High Throughput**: Engines like MailKit and GIS target metadata extraction rates exceeding 400 MB/s.
 
 ### Normalized Spatial Contracts
+
 TrueParser unifies technical geometry across disparate engines. Whether you are parsing a complex CAD drawing or a multi-layer GIS archive, the platform delivers a consistent spatial contract:
+
 - **WKT (Well-Known Text)**: All geometry is normalized into standard WKT for easy database and application ingestion.
 - **BBOX & Centroids**: Every spatial record includes pre-calculated Bounding Box and Centroid metadata.
 - **World-Coordinate Flattening**: CAD blocks and GIS layers are projected into a unified coordinate space for direct interoperability.
 
 ### Result Materialization
+
 Engines emit deterministic NDJSON streams. The platform transformation pipeline converts these into final, canonical JSON artifacts stored directly in your tenant-scoped S3-compatible storage.
 
 ### Governance & Security
+
 Built for enterprise use with:
+
 - **Multi-tenant isolation**: Logical and physical separation of tenant data.
 - **JWT-based auth**: Secure machine-to-machine authentication.
 - **Resource Controls**: Granular rate limiting and quotas.
@@ -82,37 +95,47 @@ Built for enterprise use with:
 Below is a detailed view of the formats supported by the TrueParser engine library.
 
 ### PDF & Vision (TrueParserPdf)
+
 TrueParserPdf uses a dual-pipeline approach for document intelligence:
+
 - **Basic Pipeline**: High-performance text and table extraction using Syncfusion and Tabula heuristics. Supports `SingleColumn` and `MultiColumn` reading flows.
 - **Advanced Pipeline**: **Vision model-based** extraction for complex layouts and OCR-required documents, normalizing provider-specific output into canonical blocks.
 - **Output**: Native NDJSON streaming for low memory overhead, with optional JSON array wrapping.
 
 ### Messaging & Archives (TrueParserMailKit)
+
 Optimized for forensics and large-scale migrations:
+
 - **Full Coverage**: PST, OST, MSG, EML, MBOX, and MHT.
 - **Rich Item Extraction**: First-class support for Appointments, Contacts, Tasks, Meetings, and Distribution Lists.
 - **Preservation**: High-fidelity unwrapping for S/MIME (.p7s/.p7m) and TNEF (winmail.dat).
 - **Architecture**: Streaming-based with optional attachment loading to handle multi-gigabyte archives efficiently.
 
 ### GIS & Geospatial (TrueParserGis)
+
 Stateless, stream-first vector parsing engine:
+
 - **Spatial Extraction**: Normalizes geometry, layers, and features into **WKT**, **BBOX**, and **Centroid**.
 - **Contracts**: Native support for zipped uploads (SHP_ZIP, FileGDB.zip, MapInfo.zip).
 - **Throughput**: Targets 1,000+ features/sec for structured spatial ingestion.
 - **Formats**: SHP, GeoJSON, GPKG, KML, KMZ, GML, FGB, FileGDB, MapInfo, SpatiaLite, and more.
 
 ### CAD & Engineering (TrueParserCad)
+
 Developer-friendly CAD-to-JSON conversion:
+
 - **Geometry Extraction**: Normalizes 30+ CAD entities (LINE, POLYLINE, HATCH, etc.) into structured geometry.
 - **Normalization**: Flattens DWG/DXF blocks into world coordinates with bbox, centroid, and WKT.
 - **Hierarchy**: Maintains drawing relationships with `containerId` and `parentId` for deep traceability.
 - **Spatial Transformation**: Automatic 3D-to-2D projections for spatial fields.
 
 ### SQL (TrueParserSql)
+
 - **Dialects**: ANSI, BigQuery, ClickHouse, Databricks, DuckDB, MS SQL Server, MySQL, Oracle, PostgreSQL, Redshift, Snowflake, SQLite.
 - **Advanced**: BOM-aware ingestion, malformed statement recovery, and semantic extraction for join/filter analysis.
 
 ### Enterprise & OpenDocument (TrueParserMsOffice / TrueParserOpenDoc)
+
 - **Microsoft Office**: .docx, .doc, .rtf, .xlsx, .xls, .pptx, .ppt, and web formats (.html, .md).
 - **OpenDocument (ODF)**: .odt, .ods, .odp, .odg, .odf.
 - **Technical Formats**: EPUB, IDML (InDesign), DBF, DIF, and MIF (FrameMaker).
@@ -123,7 +146,8 @@ Developer-friendly CAD-to-JSON conversion:
 
 <CardGroup cols={2}>
   <Card title="RAG & Semantic Search" icon="magnifying-glass">
-    Power your LLM pipelines with structured, meaningful context from technical documents.
+    Power your LLM pipelines with structured, meaningful context from technical
+    documents.
   </Card>
   <Card title="Compliance & Audit" icon="shield-check">
     Automate sensitive data discovery and extraction across large archive sets.
@@ -142,7 +166,11 @@ Developer-friendly CAD-to-JSON conversion:
   <Card title="Quickstart" icon="rocket" href="/quickstart">
     Get your first document parsed in minutes.
   </Card>
-  <Card title="Architecture" icon="diagram-project" href="/internals/reliability">
+  <Card
+    title="Architecture"
+    icon="diagram-project"
+    href="/internals/reliability"
+  >
     Learn how TrueParser handles scale and reliability.
   </Card>
 </CardGroup>

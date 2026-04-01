@@ -3,7 +3,11 @@ title: "Intelligent Routing"
 description: "How TrueParser dispatches documents to specialized parsing engines."
 ---
 
-TrueParser does not treat all documents the same. Behind the unified API layer is an intelligent routing system that routes the document to the appropriate parser based on the document's structure, extension, or your explicit instructions.
+### Intelligent Format Identification
+
+The engine identifies most documents automatically by inspecting their binary signature and structure (e.g., PDFs, Email, SQL).
+
+However, **ZIP-based formats (GIS Shapefiles, MapInfo)** require an explicit format hint during ingestion. Because ZIP files act as opaque containers, the system cannot verify whether a payload contains a CAD archive, a GIS dataset, or a generic compression without your instruction via the `documentType` parameter.
 
 ## The Routing Decision
 

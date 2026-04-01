@@ -21,7 +21,7 @@ The Primary entry point for document ingestion and retrieval.
 ### Submit Document
 `POST /api/v1/documents/parse`
 
-Submits a document for asynchronous parsing. The system will detect the format automatically unless an explicit type or mode is required.
+Submits a document for asynchronous parsing. While most standalone files (PDF, SQL, Office) are automatically identified by the engine, **ZIP-based formats (GIS, MapInfo) require an explicit `documentType`** as their contents cannot be detected automatically.
 
 #### Body Parameters
 <ParamField body="file" type="file" required>
@@ -33,7 +33,7 @@ Submits a document for asynchronous parsing. The system will detect the format a
 </ParamField>
 
 <ParamField body="documentType" type="string">
-  Explicitly define the format (e.g., `PDF`, `DWG`, `SHP_ZIP`).
+  The format of the document. **Required for ZIP-based uploads (e.g., `SHP_ZIP`, `TAB_ZIP`)** as these cannot be automatically detected. Optional for standalone files (PDF, Word, etc.).
 </ParamField>
 
 <ParamField body="csvRoute" type="string">
