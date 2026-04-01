@@ -5,9 +5,9 @@ description: "Sign up, create your app, and parse your first document in minutes
 
 ## 1. Sign up
 
-Create your TrueParser account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
+Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Authentication**: TrueParser Dashboard uses **Email and Password** sign-in to manage your account.
+- **Authentication**: TrueParser Dashboard uses **Google Authentication** to manage your account.
 - **Initial State**: New accounts start in a **Pending Activation** state. You will receive an automated email once your organization is active.
 
 ---
@@ -21,13 +21,16 @@ To access the parsing engines, you need a security token. Tokens are issued to *
     Navigate to **Apps** in the dashboard sidebar and click **Add Application**.
   </Step>
   <Step title="Name your app">
-    Identify the service connecting to TrueParser, for example `my-document-parser`.
+    Identify the service connecting to TrueParser, for example
+    `my-document-parser`.
   </Step>
   <Step title="Set the License Region">
-    Choose the geographic region closest to your primary data region (e.g., `aws-us-east-1`).
+    Choose the geographic region closest to your primary data region (e.g.,
+    `aws-us-east-1`).
   </Step>
   <Step title="Save your credentials">
-    Immediately copy your **Client ID** and **Client Secret**. The secret is shown in plaintext only at this step.
+    Immediately copy your **Client ID** and **Client Secret**. The secret is
+    shown in plaintext only at this step.
   </Step>
 </Steps>
 
@@ -38,7 +41,9 @@ To access the parsing engines, you need a security token. Tokens are issued to *
 To parse technical documents, your application requires the **usage quota** provided by a plan. While you can obtain a token without a plan, it will be rejected by the parsing engine as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
 
 <Tip>
-  **Quota Activation.** To enable parsing operations, you must select an available plan in the dashboard. This ensures your issued tokens contain the required usage quotas for your License Region.
+  **Quota Activation.** To enable parsing operations, you must select an
+  available plan in the dashboard. This ensures your issued tokens contain the
+  required usage quotas for your License Region.
 </Tip>
 
 ---
@@ -53,35 +58,62 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
   -d "grant_type=client_credentials" \
   -d "client_id=YOUR_CLIENT_ID" \
   -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "scope=TrueParser.API offline_access"
+  -d "scope=TrueParser.API"
 ```
 
 ---
 
-## 5. Parse a Document
+## 5. Ingest a Document
 
-Submit your first document for parsing using the **Parsing API**.
+Submit a document for parsing. Note that specific formats like PDF require additional parameters like `pdfMode`.
 
 ```bash
 curl -X POST https://api.trueparser.com/api/v1/documents/parse \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -F "file=@/path/to/document.pdf" \
-  -F "documentType=Pdf"
+  -F "documentType=Pdf" \
+  -F "pdfMode=SingleColumn"
 ```
+
+The API returns a **202 Accepted** with a `documentId` for tracking.
 
 ---
 
-## 6. Retrieve Results
+## 6. Poll for Completion
 
-Once processing is complete, download your structured JSON results from the **Parsing API**:
+TrueParser is an **asynchronous** platform. Before fetching results, you must poll the status endpoint until the job is `completed`.
 
 ```bash
-curl -X GET https://api.trueparser.com/api/v1/documents/7b1c0d8c-.../result \
+curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/status \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
+**Response:**
+Wait for `"status": "completed"`. If the status is `failed`, check the `error` field for details.
+
+---
+
+## 7. Retrieve Results
+
+Once the status is confirmed as `completed`, download your structured JSON results from the **Parsing API**:
+
+```bash
+curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/result \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+<Note>
+  **Result Streaming.** TrueParser streams the parsed JSON artifact directly
+  through the `/result` endpoint. Clients do **not** fetch results from S3 or
+  external storage directly.
+</Note>
+
 <CardGroup cols={1}>
-  <Card title="Learn about Result Delivery" icon="file-export" href="/parsing-engine/delivery">
+  <Card
+    title="Learn about Result Delivery"
+    icon="file-export"
+    href="/parsing-engine/delivery"
+  >
     Understand how results are materialized and fetched from the API.
   </Card>
 </CardGroup>
