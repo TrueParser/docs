@@ -13,8 +13,8 @@ TrueParser provides a unified API for extracting structured json from CAD, GIS, 
     format.
   </Card>
   <Card title="Streaming-First" icon="bolt">
-    Native support for NDJSON streams ensures memory-efficient processing of
-    even the largest documents.
+    Stream-based processing keeps memory usage low even for very large
+    documents.
   </Card>
   <Card title="Format Agnostic" icon="file-import">
     Built-in detection and routing for CAD, SQL, PDF, and Enterprise Office
@@ -76,7 +76,19 @@ TrueParser unifies technical geometry across disparate engines. Whether you are 
 
 ### Result Materialization
 
-Engines emit deterministic NDJSON streams. The platform transformation pipeline converts these into final, canonical JSON artifacts stored directly in your tenant-scoped S3-compatible storage.
+The platform transforms parsed output into final, canonical JSON artifacts stored directly in your tenant-scoped S3-compatible storage.
+
+### Document Units
+
+TrueParser measures parsing consumption in **Document Units**. A Document Unit is the commercial usage unit used for plan limits and quota enforcement.
+
+Depending on the parser family, one Document Unit may correspond to:
+
+- one page for PDF, Microsoft Office, and OpenDocument files
+- one email or message item for MailKit sources
+- one SQL statement for SQL sources
+- one logical dataset for GIS sources
+- one processed document for CAD sources
 
 ### Governance & Security
 
@@ -98,7 +110,7 @@ TrueParserPdf uses a dual-pipeline approach for document intelligence:
 
 - **Basic Pipeline**: High-performance text and table extraction using Syncfusion and Tabula heuristics. Supports `SingleColumn` and `MultiColumn` reading flows.
 - **Advanced Pipeline**: **Vision model-based** extraction for complex layouts and OCR-required documents, normalizing provider-specific output into canonical blocks.
-- **Output**: Native NDJSON streaming for low memory overhead, with optional JSON array wrapping.
+- **Output**: Canonical JSON artifacts for product retrieval and downstream use.
 
 ### Messaging & Archives (TrueParserMailKit)
 
@@ -107,7 +119,9 @@ Optimized for high-volume forensics and large-scale migrations, the MailKit engi
 The engine handles complex Outlook-specific encapsulations like **TNEF (winmail.dat)** and provides cryptographic unwrapping for **S/MIME (.p7s/.p7m)** signed or encrypted messages, preserving all underlying metadata.
 
 <Note>
-  **Enterprise Access**: Rich item extraction (Calendar, Tasks, Contacts) is available on all plans. However, **binary attachment extraction** is exclusively supported on Enterprise-tier plans.
+  **Enterprise Access**: Rich item extraction (Calendar, Tasks, Contacts) is
+  available on all plans. However, **binary attachment extraction** is
+  exclusively supported on Enterprise-tier plans.
 </Note>
 
 ### GIS & Geospatial (TrueParserGis)

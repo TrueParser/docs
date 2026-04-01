@@ -1,44 +1,112 @@
 ---
 title: "Reliability"
-description: "How TrueParser is built for resilience and where to check service status."
+description: "How TrueParser handles asynchronous processing, retries, and temporary overload."
 ---
 
-## Architecture
+## Overview
 
-TrueParser nodes are **stateless**. Each regional cluster runs multiple nodes backed by a single Redis instance in high-availability mode. Because all session state lives in Redis and not on individual nodes, any node in a region can serve any document in that region at any time.
+TrueParser is an asynchronous parsing platform. Documents are submitted through the API, processed in the background, and made available through status polling and result retrieval.
 
-When a node becomes unhealthy, DNS load balancing automatically routes new connections to healthy nodes in the same cluster. This transition is invisible to your users — no client-side failover logic is required.
+This reliability model is designed to support:
 
----
+- asynchronous job execution
+- retry of transient background failures
+- temporary node overload protection
+- durable job-state and artifact handling
 
-## Automatic Load Shedding
+## Asynchronous Processing
 
-TrueParser nodes continuously monitor memory, CPU load, and active connection count. When a node approaches its limits, it automatically removes itself from the DNS routing pool and stops accepting new connections.
+When you submit a document, TrueParser accepts the request and queues the parsing job for background processing.
 
-DNS load balancing ensures all new connections are routed to healthy nodes in the cluster automatically — no client-side handling or reconnection logic is required for node-level health events.
+What this means for your application:
 
-**What this means for your application:**
+- submission does not guarantee immediate parsing completion
+- you should poll the status endpoint for progress
+- you should fetch results only after the job completes
 
-- **Zero dropped sessions** — Existing active sessions are never dropped during a node health event. Current users finish their work undisturbed.
-- **Transparent DNS steering** — New connections are transparently routed to healthy nodes by DNS as soon as a node reaches its high-water mark of 80% occupancy.
-- **Automatic recovery** — Once a node's memory or connection count returns to safe levels, it automatically re-enters the pool without any intervention.
-- **Thundering herd protection** — Rejected connection attempts receive a jittered `Retry-After` instruction, preventing massive reconnection spikes from overwhelming healthy nodes during a regional shift.
+## Retry Behavior
 
-In the rare event that all nodes in a region become unavailable simultaneously, the entire cluster becomes unreachable. In this case, connect to a different available region and monitor [status.trueparser.com](https://status.trueparser.com) for recovery updates.
-```
+TrueParser retries certain background processing failures automatically when they are considered transient.
 
----
+Typical retryable conditions may include temporary issues with:
 
-## SLA
+- infrastructure connectivity
+- storage access
+- network timeouts
+- background processing dependencies
 
-TrueParser does not publish an uptime SLA for standard plans. Enterprise plans include a contractual SLA. [Contact us](mailto:support@trueparser.com) for Enterprise pricing.
+Hard validation or parsing failures are not treated the same way and may result in terminal job failure instead.
 
----
+## Overload Protection
 
-## Status Page
+TrueParser protects API nodes from overload.
 
-Live service status, incident history, and maintenance notices are available at:
+If a node becomes overloaded:
 
-**[status.trueparser.com](https://status.trueparser.com)**
+- it may reject non-health API requests with `503 Service Unavailable`
+- responses may include `Retry-After`
+- healthy nodes can continue serving traffic
 
-Subscribe to status updates to receive notifications for incidents and planned maintenance windows.
+For routing decisions, the platform exposes a dedicated node-state health endpoint so infrastructure can avoid sending new traffic to overloaded nodes.
+
+## Health Endpoints
+
+TrueParser provides three important health signals:
+
+- `/health/live`
+  - confirms the process is alive
+- `/health/ready`
+  - confirms critical dependencies are ready
+- `/health/node-state`
+  - indicates whether the node should continue receiving traffic
+
+For platform routing and overload handling, `/health/node-state` is the most important endpoint.
+
+## Job Safety
+
+To prevent duplicate processing and preserve job consistency, TrueParser coordinates background work using shared infrastructure.
+
+At a high level, the platform maintains:
+
+- job status tracking
+- work coordination
+- protection against duplicate concurrent processing
+
+This helps ensure that clients see stable job progression from submission to completion or failure.
+
+## Artifact Reliability
+
+TrueParser stores:
+
+- raw uploaded artifacts
+- parsed result artifacts
+
+Clients do not fetch parsed results directly from object storage. Instead, they retrieve results through the API once processing is complete.
+
+This keeps access control, result availability, and retrieval behavior consistent.
+
+## What Clients Should Expect
+
+Clients should design for:
+
+- asynchronous completion
+- status polling
+- eventual success or failure
+- temporary `503` responses during overload
+- temporary `202` responses from result retrieval while processing is still underway
+
+Clients should not assume:
+
+- immediate synchronous parsing completion
+- direct object-storage access for result retrieval
+- that every failure is permanent
+
+## Best Practice
+
+For reliable client behavior:
+
+1. submit the document
+2. store the returned document id
+3. poll status with backoff
+4. fetch results only after completion
+5. retry `429` and retryable `503` responses with backoff

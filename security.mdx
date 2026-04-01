@@ -1,94 +1,112 @@
 ---
 title: "Security and Hardening"
-description: "An overview of the security architecture and isolation models powering the TrueParser platform."
+description: "Tenant-facing security guidance for authentication, app isolation, and platform protection."
 ---
 
-TrueParser is a unified orchestration platform for multi-format parsing and structured data extraction. Security is baked into the orchestration layer, ensuring isolation across diverse technical datasets.
+TrueParser is designed so tenant applications authenticate securely, stay isolated from each other, and operate within platform protection controls.
 
----
+This page focuses on the parts of security that matter to tenant developers and operators.
 
-## 1. Authentication Infrastructure
+## 1. Authentication
 
-TrueParser uses a hardened OAuth2 implementation to manage access across the platform.
+Tenant applications use machine-to-machine authentication.
 
-### Standardized Flows
+### M2M Access
 
-- **Client Credentials**: Used for secure machine-to-machine communication and parsing orchestration.
-- **Refresh Token**: For secure session extension without re-exposing sensitive credentials.
+- tenant apps authenticate with `client_id` and `client_secret`
+- M2M access uses OAuth 2.0 `client_credentials`
+- the API scope for tenant apps is `TrueParser.API`
+- access tokens are short-lived and currently configured for 15 minutes
 
-### Token Security
+### Token Renewal For M2M
 
-- **Short-lived access**: Access tokens are limited to 15 minutes by default, minimizing the attack window for compromised credentials.
-- **Asymmetric signing**: All tokens are signed using 2048-bit RSA keys.
-- **Least privilege scopes**: Access is strictly gated by specialized scopes such as `TrueParser.API`.
+For tenant-facing M2M usage, treat token renewal as re-authentication with the app credentials.
 
----
+- request a new access token using `client_id` and `client_secret`
+- do not depend on refresh-token based M2M renewal in tenant docs
+- cache and reuse access tokens until they are close to expiry
 
-## 2. Multi-tenant Cryptographic Isolation
+<Tip>
+  A 15-minute access token should not be a bottleneck if your backend reuses the
+  token and renews it close to expiry instead of requesting a new token for
+  every API call.
+</Tip>
 
-TrueParser enforces hard isolation at the cryptographic layer, ensuring that tenants never share security boundaries.
+## 2. App Isolation
 
-### Per-tenant Signing Keys
+Each tenant app is an isolated machine identity.
 
-Unlike platforms that use a single global signing key, TrueParser assigns every tenant its own unique 2048-bit RSA key pair.
+- every app has its own `client_id` and `client_secret`
+- apps can be enabled or disabled independently
+- apps carry their own license region and usage metadata
+- plan assignment is tracked per app
 
-- **Cryptographic Silos**: A compromise of one tenant's environment cannot lead to token forgery for another.
-- **Tenant-specific JWKS**: Public keys are exposed via unique, tenant-specific discovery endpoints.
+This means one app can be rotated, disabled, or reconfigured without affecting other apps in the same tenant.
 
----
+## 3. Allowed Domains
 
-## 3. Key Management and Encryption
+Apps can store up to three allowed domains as security metadata.
 
-We use enterprise-grade encryption and secure vaulting to manage sensitive cryptographic material.
+Typical usage:
 
-### Encryption at Rest
+| Slot               | Recommended Use                                 |
+| :----------------- | :---------------------------------------------- |
+| `allowed_domain_1` | Production, for example `myapp.com`             |
+| `allowed_domain_2` | Staging, for example `staging.myapp.com`        |
+| `allowed_domain_3` | Local development, for example `localhost:3000` |
 
-All private keys and sensitive metadata are encrypted at rest using industry-standard 256-bit encryption and a secure, vault-backed master key.
+Allowed domains are normalized before storage.
 
-### Key Versioning and Rotation
+- protocols are stripped
+- trailing slashes are removed
+- wildcards are rejected
+- `localhost` with a valid port is allowed
 
-Every encrypted key is tagged with a version identifier. This allows for:
+When configured, these values are included in the app's access token as claims.
 
-- Seamless rotation without breaking existing data.
-- Grace periods during rotation.
-- Immediate revocation in the event of an incident.
+## 4. Plan And Usage Protection
 
----
+Plans control the usage limits attached to an app.
 
-## 4. Platform Integrity and Isolation
+- if no plan is assigned, the app can still obtain a token, but the `limits` claim is omitted
+- if a usable plan is assigned, the token includes usage limits
+- if a retired plan is assigned, token issuance is blocked
 
-Security is enforced at every layer of the stack, from API entry points to secure, tenant-isolated storage.
+For tenant-facing docs, usage should be understood as **Document Units**.
 
-### Identity and Permissions
+## 5. Platform Protection
 
-- **Separation of Concerns**: Human administrator roles are strictly isolated from machine-to-machine client permissions.
-- **Request Integrity**: Every request is validated against the platform's current security state.
+TrueParser protects the platform with runtime and traffic controls.
 
-### Infrastructure Defense
+### Rate Limiting
 
-- **Rate Limiting**: Specialized policies protect sensitive endpoints such as authentication and account management from brute-force and DDoS attempts.
-- **Tenant Isolation**: Parsing nodes maintain strict logical separation of data during ingestion and extraction.
+Rate limiting helps protect sensitive endpoints from abuse and accidental overload.
 
----
+- authentication and other sensitive endpoints are protected by request limits
+- clients should avoid unnecessary token requests
+- clients should reuse access tokens until renewal is needed
 
-## 5. Origin Security
+### Resource Guard
 
-### Origin-based Normalization
+TrueParser also monitors runtime resource pressure to protect platform stability.
 
-To prevent unauthorized cross-origin requests, TrueParser enforces domain-based security metadata.
+- the platform monitors service health and resource pressure
+- during overload conditions, requests may be slowed, deferred, or rejected
+- this helps preserve stability for all tenants sharing the platform
 
-| Slot | Recommended Use |
-| :--- | :--- |
-| `allowed_domain_1` | Production, e.g., `myapp.com` |
-| `allowed_domain_2` | Staging, e.g., `staging.myapp.com` |
-| `allowed_domain_3` | Local development, e.g., `localhost:3000` |
+## 6. Credential Handling
 
-<Note>
-  Stolen tokens are mitigated by edge-level origin validation. Connections from unauthorized domains are rejected before reaching the parsing engines.
-</Note>
+Treat the app secret as a sensitive backend credential.
 
----
+- the plaintext `client_secret` is shown once when the app is created
+- if the secret is regenerated, the new plaintext secret is shown once for that regeneration event
+- regenerating a secret invalidates the old one
+- store secrets in your own secure secret manager
 
-<Note>
-  **Audit Trail**: All major security actions, including tenant creation and key revocation, generate distributed events, providing a comprehensive audit trail for compliance and monitoring.
-</Note>
+## 7. Auditability
+
+Security-sensitive operations should be treated as operational events.
+
+- tenant and app lifecycle changes affect access behavior
+- credential rotation and plan changes should be tracked in your own operational process
+- if access behavior changes unexpectedly, verify app status, tenant status, plan status, and secret validity first

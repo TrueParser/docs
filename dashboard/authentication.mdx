@@ -47,7 +47,9 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
 The access token lifetime is configured to 15 minutes.
 
 <Tip>
-  A 15-minute access token should not be a bottleneck for M2M clients if your backend caches the token and renews it close to expiry. The usual anti-pattern is requesting a new token for every API call.
+  A 15-minute access token should not be a bottleneck for M2M clients if your
+  backend caches the token and renews it close to expiry. The usual anti-pattern
+  is requesting a new token for every API call.
 </Tip>
 
 ## Token Claims
@@ -76,13 +78,13 @@ Example:
   "dbCode": "region-db-code",
   "allowed_domain_1": "localhost:3000",
   "limits": {
-    "maxUnitsPerMonth": 1000,
-    "maxUnitsPerWeek": 500,
-    "maxUnitsPerDay": 250,
-    "maxUnitsPerHour": 100,
+    "maxDocumentUnitsPerMonth": 1000,
+    "maxDocumentUnitsPerWeek": 500,
+    "maxDocumentUnitsPerDay": 250,
+    "maxDocumentUnitsPerHour": 100,
     "maxApiRequestsPerMinute": 10,
     "advancedExtraction": false,
-    "dynamicFeatures": {}
+    "allowedFormats": ["sql", "eml", "msg"]
   }
 }
 ```

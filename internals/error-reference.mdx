@@ -1,30 +1,104 @@
 ---
 title: "Error Reference"
-description: "Complete reference for Parsing Engine and Dashboard API errors."
+description: "Common TrueParser API errors and what they mean."
 ---
 
-## Dashboard API Errors
+## Overview
 
-Errors returned by `dashboard.trueparser.com` for token and management requests.
+TrueParser returns standard HTTP status codes together with JSON error bodies for most API failures.
 
-| Code | Description | What to do |
-| --- | --- | --- |
-| `400 Bad Request` | Missing or malformed parameters | Check required fields such as `grant_type`, `client_id`, or `documentType`. |
-| `401 Unauthorized` | Credentials are missing or invalid | Verify your `client_id` and `client_secret`. |
-| `403 Forbidden` | Permission denied | Check your plan status. Retired plans block access. |
-| `429 Too Many Requests` | Rate limit exceeded | Implement exponential backoff. |
-| `503 Service Unavailable` | Service maintenance | Monitor [status.trueparser.com](https://status.trueparser.com) for updates. |
+The most common error payload shape is:
 
----
+```json
+{
+  "error": "error_code",
+  "message": "Human-readable explanation"
+}
+```
 
-## Parsing Engine Errors
+Some endpoints may also return route-specific fields such as `detail`.
 
-Errors returned by the API during document ingestion and result retrieval.
+## Authentication Errors
 
-| Code | Description | What to do |
-| :--- | :--- | :--- |
-| `400 Bad Request` | Invalid document or parameters | Ensure `documentType` and file content match. |
-| `413 Payload Too Large` | Document exceeds size limit | Check your plan's `maxInputBytesPerDocument`. |
-| `422 Unprocessable` | Extraction failed | The engine encountered an unrecoverable error during parsing. |
-| `429 Too Many Requests` | Usage quota exceeded | Total **Document Units** processed for the period has reached your plan limit. |
-| `503 Service Unavailable` | Node is overloaded | Retry with backoff using the `Retry-After` header value. |
+These errors happen when a request is missing a valid access token or the token does not satisfy API policy.
+
+| HTTP Status | Error Code           | Meaning                                                    |
+| ----------- | -------------------- | ---------------------------------------------------------- |
+| `401`       | `missing_token`      | No bearer token was provided.                              |
+| `401`       | `token_expired`      | The access token has expired.                              |
+| `401`       | `invalid_token`      | The token could not be accepted.                           |
+| `403`       | `invalid_scope`      | The token does not have the required API scope.            |
+| `403`       | `domain_not_allowed` | The request origin is not allowed for this application.    |
+| `503`       | `auth_unavailable`   | Authentication infrastructure was temporarily unavailable. |
+
+## Document Submission Errors
+
+These errors happen during document ingestion.
+
+| HTTP Status | Error Code                        | Meaning                                                                              |
+| ----------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `400`       | `invalid_input`                   | The uploaded file is missing or empty.                                               |
+| `400`       | `document_type_required`          | ZIP uploads must include an explicit `documentType`.                                 |
+| `400`       | `unsupported_format`              | The file format is not supported.                                                    |
+| `400`       | `csv_route_required`              | CSV uploads must include `csvRoute`.                                                 |
+| `400`       | `sql_dialect_required`            | SQL uploads must include `sqlDialect`.                                               |
+| `400`       | `pdf_mode_required`               | PDF uploads must include `pdfMode`.                                                  |
+| `400`       | `invalid_metadata`                | `customMetadataJson` is not valid JSON.                                              |
+| `403`       | `advanced_extraction_not_allowed` | The current plan does not allow advanced PDF extraction.                             |
+| `403`       | `license_restriction`             | The requested operation is not allowed under the current plan or format entitlement. |
+| `413`       | `document_too_large`              | The upload exceeds the maximum allowed size for the plan.                            |
+| `429`       | `rate_limit_exceeded`             | The application exceeded its API traffic limit.                                      |
+| `429`       | `quota_exceeded`                  | The application exceeded a quota window and cannot accept more work right now.       |
+| `503`       | none fixed                        | The node is temporarily overloaded.                                                  |
+
+## Result and Status Errors
+
+These errors happen when checking status or retrieving parsed results.
+
+| HTTP Status | Error Code          | Meaning                                                      |
+| ----------- | ------------------- | ------------------------------------------------------------ |
+| `404`       | `not_found`         | No job exists for the requested document id.                 |
+| `404`       | `result_not_found`  | The job completed but no result reference was available.     |
+| `404`       | `document_expired`  | The parsed result is no longer available.                    |
+| `422`       | `extraction_failed` | The parser failed to process the document.                   |
+| `202`       | none fixed          | The job is still processing and the result is not ready yet. |
+
+## Health and Overload Responses
+
+TrueParser also exposes health and overload signals:
+
+| Endpoint             | HTTP Status | Meaning                                                    |
+| -------------------- | ----------- | ---------------------------------------------------------- |
+| `/health/live`       | `200`       | The service process is alive.                              |
+| `/health/ready`      | `503`       | A required dependency is not ready.                        |
+| `/health/node-state` | `503`       | The node is overloaded and should not receive new traffic. |
+
+When a node is overloaded, the API may return a response like:
+
+```json
+{
+  "status": 503,
+  "state": "overloaded",
+  "reason": "cpu",
+  "retryAfter": 60
+}
+```
+
+## Quota and Processing Failures
+
+Background processing failures may eventually surface through status polling or result retrieval.
+
+Common examples include:
+
+- `quota_exceeded`
+- `document_quota_exceeded`
+- `job_timeout`
+- `processing_failed`
+- `transient_infrastructure_failure`
+
+## What Clients Should Do
+
+- treat the HTTP status code as the primary signal
+- inspect the `error` field when present
+- use retry with backoff for `429` and appropriate `503` responses
+- poll status for asynchronous jobs instead of assuming immediate completion

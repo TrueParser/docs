@@ -1,4 +1,104 @@
 ---
 title: "Rate Limits"
-description: "Rate limiting policies for TrueParser endpoints."
+description: "How TrueParser applies API request limits and Document Unit quota limits."
 ---
+
+## Overview
+
+TrueParser applies two different kinds of limits:
+
+- API request-rate limits
+- Document Unit quota limits
+
+These limits work together, but they protect different parts of the platform.
+
+## API Request Limits
+
+TrueParser enforces app-scoped request-rate limits for API traffic.
+
+Current public behavior:
+
+- request limits apply per application
+- the current request-rate model is requests per minute
+- request-rate limits are separate from Document Unit quotas
+
+If your application exceeds the allowed request rate, the API returns `429 Too Many Requests`.
+
+Typical error response:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "API request rate limit exceeded."
+}
+```
+
+## Document Unit Quotas
+
+TrueParser also enforces quota windows for parsing consumption.
+
+These quotas apply to **Document Units**, which are the platform’s common measurement for countable parsing work.
+
+Document Unit quota windows currently include:
+
+- per document
+- hourly
+- daily
+- weekly
+- monthly
+
+If a parsing operation would exceed an allowed quota window, the job is rejected or failed under the current plan rules.
+
+## Document Units by Family
+
+Depending on parser family, one Document Unit means:
+
+| Family   | One Document Unit means          |
+| -------- | -------------------------------- |
+| PDF      | One page                         |
+| MsOffice | One page                         |
+| OpenDoc  | One page                         |
+| MailKit  | One top-level email/message item |
+| SQL      | One statement                    |
+| GIS      | One logical dataset              |
+| CAD      | One processed document           |
+
+## Byte Usage
+
+TrueParser also tracks accepted upload size in bytes.
+
+Byte usage is separate from both:
+
+- request-rate limits
+- Document Unit quotas
+
+This allows the platform to provide visibility into upload volume while still enforcing Document Units as the main parsing-consumption model.
+
+The platform also enforces a maximum upload size per document under your plan.
+
+## Which Endpoints Are Affected?
+
+The most important request-rate gate applies to document ingestion.
+
+At a high level:
+
+- ingestion is rate-limited
+- parsing work is quota-limited through Document Units
+- overloaded nodes may also return `503 Service Unavailable`
+
+TrueParser does not currently publish a separate public rate-limit table for every endpoint.
+
+## What to Expect
+
+If you exceed API traffic limits:
+
+- expect `429 Too Many Requests`
+
+If you exceed Document Unit quota windows:
+
+- expect quota-related failures such as `quota_exceeded` or `document_quota_exceeded`
+
+If the platform is temporarily overloaded:
+
+- expect `503 Service Unavailable`
+- retry using backoff when appropriate

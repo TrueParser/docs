@@ -12,6 +12,7 @@ Once a document is ingested, it moves through the async parsing process. To retr
 You can check the progress of a parse job using the `GET /api/v1/documents/{documentId}/status` endpoint.
 
 The status response includes the current lifecycle state:
+
 - `queued`: The job is waiting to be processed.
 - `processing`: The engine is actively parsing the document.
 - `completed`: The result has been materialized and is ready for download.
@@ -24,28 +25,29 @@ The status response includes the current lifecycle state:
 The final, materialized artifact is retrieved via `GET /api/v1/documents/{documentId}/result`.
 
 ### Retrieval Flow
+
 1. **Submit**: Documents are accepted and queued for processing via the ingestion endpoint.
 2. **Poll**: Your application polls the status endpoint until the state reaches **completed**.
 3. **Fetch**: Call the result endpoint to receive the final structured data.
 
 ### Platform Boundary
+
 To ensure security and stability, **TrueParser proxies all result access.** Your application interacts only with the platform's REST endpoints and never connects directly to the underlying S3-compatible storage. This allows us to manage per-request authorization and regional routing transparently.
 
 ---
 
 ## Output Formats
 
-TrueParser delivers structured data in two standard formats, optimized for different consumption patterns.
+TrueParser delivers the final parsed result as canonical JSON. That is the primary product-facing artifact returned through the API.
 
 ### 1. JSON Document (Primary)
-The standard and recommended format for most applications. TrueParser materializes the parsed data into a final, valid JSON artifact.
-- **Best For**: Web applications, mobile clients, and standard data processing pipelines.
 
-### 2. NDJSON (Streaming Analysis)
-Newline Delimited JSON is available for high-throughput, record-by-record analysis.
-- **Best For**: Large-scale data ingestion into high-performance analytical databases.
+The standard and recommended format for most applications. TrueParser materializes the parsed data into a final, valid JSON artifact.
+
+- **Best For**: Web applications, mobile clients, and standard data processing pipelines.
 
 ---
 
 ## Schema Versioning
+
 Every result artifact includes a `schema_version` and `document_format` marker. These contracts are stable within a major version, ensuring your downstream logic remains robust even as underlying parser engines are updated.

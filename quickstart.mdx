@@ -48,7 +48,23 @@ To parse technical documents, your application requires the **usage quota** prov
 
 ---
 
-## 4. Get an Access Token
+## 4. Understand Document Units
+
+TrueParser measures parsing consumption in **Document Units**.
+
+Depending on the parser family, one Document Unit may correspond to:
+
+- one page for PDF, Microsoft Office, and OpenDocument files
+- one email or message item for MailKit sources
+- one SQL statement for SQL sources
+- one logical dataset for GIS sources
+- one processed document for CAD sources
+
+Your plan's `limits` claim controls the Document Units your app can consume across the per-document, hourly, daily, weekly, and monthly quota windows.
+
+---
+
+## 5. Get an Access Token
 
 Exchange your application credentials for a security token at the **Identity Authority**:
 
@@ -63,7 +79,7 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
 
 ---
 
-## 5. Ingest a Document
+## 6. Ingest a Document
 
 Submit a document for parsing. Some formats require additional routing parameters:
 
@@ -84,7 +100,7 @@ The API returns a **202 Accepted** with a `documentId` for tracking.
 
 ---
 
-## 6. Poll for Completion
+## 7. Poll for Completion
 
 TrueParser is an **asynchronous** platform. Before fetching results, poll the status endpoint until the job reaches `completed`.
 
@@ -98,7 +114,7 @@ Wait for `"status": "completed"`. Typical status values include `queued`, `proce
 
 ---
 
-## 7. Retrieve Results
+## 8. Retrieve Results
 
 Once the status is confirmed as `completed`, download your structured JSON results from the **Parsing API**:
 
