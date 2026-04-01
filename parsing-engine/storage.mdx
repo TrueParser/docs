@@ -7,18 +7,21 @@ description: "Managing document storage, paths, and retention."
 
 TrueParser provides reliable persistence for your parsed results, ensuring that structured data is available for retrieval by your downstream applications.
 
-### Tenant-Isolated Storage
+### Tenant-Scoped S3 Storage
 
-All raw uploads and parsed artifacts are stored in secure, tenant-isolated storage. By default, TrueParser uses a managed global storage layer, but enterprise plans can configure dedicated storage overrides in the dashboard.
+TrueParser stores all raw uploads and final parsed artifacts in secure, tenant-isolated buckets. By default, the platform provides managed storage, but for production workloads, you can configure your own **S3-compatible storage backend** in the dashboard.
 
-This structure ensures strict isolation between your applications and simplifies artifact management.
+This allows you to maintain full ownership and governance of your data once the internal parsing lifecycle is complete.
 
-## 3-Hour Retention Window
+## Retention Policy
 
-TrueParser is an **operational parsing platform**, not a permanent archive.
+TrueParser is an **operational orchestration platform**, designed to be a high-performance pass-through for your document data.
 
-> [!IMPORTANT]
-> Parsed artifacts are retained for **3 hours** by default. After this window, the jobs and their results are purged from the system.
+### 1. Managed Storage (Default)
+In the default managed environment, results are retained for **3 hours**. After this window, the jobs and their results are automatically purged from the system.
+
+### 2. Tenant-Specific S3
+If you have configured a tenant-scoped S3 bucket, TrueParser uploads the final artifacts directly to your infrastructure. In this mode, you have full control over data retention policies (e.g., Lifecycle Rules) on your own bucket.
 
 ### Why 3 Hours?
 Short-lived retention allows TrueParser to remain a stateless, high-performance "pass-through" for your data. It is intended that your application:

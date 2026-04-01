@@ -3,47 +3,52 @@ title: "Plan Assignment and Billing"
 description: "How to scale your app and manage subscriptions."
 ---
 
-Every app in TrueParser must be linked to a plan. The plan determines the resource limits available to that specific application.
+Every app in TrueParser should be linked to a plan to be functional. 
+
+- **No Plan Assigned**: Your app can still issue tokens, but they will not contain the processing limits or permissions required to parse documents.
+- **Retired Plan Assigned**: Token issuance is blocked. You must switch to an active plan to restore access.
 
 ---
 
-## Free plan
+## Free Plan
 
-To support developers while maintaining system stability, TrueParser offers a generous Free tier with the following rule:
+To support developers while maintaining system stability, TrueParser offers a generous Free tier:
 
-- Each tenant is allowed exactly one application on a Free plan.
-- If you attempt to assign a Free plan to a second app, the dashboard will block the request. You must either upgrade the existing Free app to a paid tier or delete it before creating a new one.
-
----
-
-## Assigning or changing a plan
-
-You can change an app's plan at any time through the Plans tab in the dashboard.
-
-### The process
-
-1. Select your new target plan.
-2. If moving to a paid plan for the first time, you will be redirected to checkout to provide billing details.
-3. Once the plan is confirmed, the dashboard updates your app's metadata and pushes the new limits to the managed sync layer.
+- **One Free Rule**: Each account is allowed exactly one application on a Free plan.
+- **Switching**: If you attempt to assign a Free plan to a second app, the dashboard will block the request. You must either upgrade the existing Free app or delete it first.
 
 ---
 
-## Understanding proration
+## Assigning or Changing a Plan
+
+You can change an app's plan at any time through the **Plans** tab in the dashboard.
+
+### The Process
+
+1. Select your target plan.
+2. If moving to a paid plan for the first time, you will provide billing details via our secure provider.
+3. Once the plan is confirmed, the dashboard updates your app's metadata and synchronizes the new limits.
+
+---
+
+## Understanding Proration
 
 TrueParser uses standard SaaS billing logic to ensure you only pay for what you use:
 
-- Free to paid: the change happens immediately, and you are charged the full amount for the upcoming billing cycle.
-- Paid to paid: the change is prorated immediately.
+- **Free to Paid**: the change happens immediately, and you are charged for the upcoming billing cycle.
+- **Paid to Paid**: the change is prorated immediately based on usage.
 
 ---
 
-## Subscription status
+## Subscription Status
 
-You can monitor your subscription health in the Billing section:
+You can monitor your subscription health in the **Billing** section:
 
-- Active: Everything is running smoothly.
-- Past due: A payment attempt failed. You have a grace period to update your card before the app is automatically disabled.
-- Cancelled: The app remains active until the end of the current billing period, after which it reverts to an inactive state.
+| Status | Description |
+| :--- | :--- |
+| **Active** | Everything is running smoothly. |
+| **Past Due** | A payment attempt failed. You have a grace period to update your card. |
+| **Cancelled** | The app remains active until the end of the current period. |
 
 <Info>
   Disabling or deleting an app does not automatically cancel a paid subscription. Always manage subscription status in the Billing tab before deleting resources.

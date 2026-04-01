@@ -33,8 +33,8 @@
     "dark": "#0047AB"
   },
   "favicon": {
-    "light": "/favicon/favicon-dark.png",
-    "dark": "/favicon/favicon-light.png"
+    "light": "/favicon/favicon-light.png",
+    "dark": "/favicon/favicon-dark.png"
   },
   "navigation": {
     "tabs": [
@@ -109,8 +109,8 @@
     }
   },
   "logo": {
-    "light": "/logo/dark.png",
-    "dark": "/logo/light.png"
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
   },
   "navbar": {
     "links": [

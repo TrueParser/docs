@@ -3,61 +3,58 @@ title: "App Setup and Credentials"
 description: "How to manage your app's credentials and keep your secrets secure."
 ---
 
-Every app created in the TrueParser dashboard is assigned a unique `client_id` and `client_secret`.
+Every app in TrueParser should be linked to a plan to be functional. 
+
+- **No Plan Assigned**: Your app can still issue tokens, but they will not contain the processing limits or permissions required to parse documents.
+- **Retired Plan Assigned**: Token issuance is blocked. You must switch to an active plan to restore access.
 
 ---
 
-1. Select License Region: Choose the geographic location for your app's management data in the dashboard. This determines where your license, plan limits, and document pinning metadata are stored.
-2. App Name: Provide a unique identifier for your application.
-3. Capture Credentials: Once created, you will see your `client_id` and `client_secret`. Copy them immediately.
+## Creation Workflow
+
+1. **Select License Region**: Choose the geographic location for your app's management data in the dashboard. This determines where your license, plan limits, and document pinning metadata are stored.
+2. **App Name**: Provide a unique identifier for your application.
+3. **Capture Credentials**: Once created, you will see your `client_id` and `client_secret`. Copy them immediately.
 
 <Warning>
-  After creating your app, you must immediately assign a plan, even the Free tier. TrueParser's authentication server requires an active plan to bake resource limits into your JWT access tokens. Without an assigned plan, your application will be unable to connect.
-</Warning>
-
-<Warning>
-  The License Region is fixed at creation. It cannot be changed later because your data is physically provisioned in that region's database shard.
+  **The License Region is fixed at creation.** It cannot be changed later because your data is physically provisioned in that region's database shard.
 </Warning>
 
 ---
 
-## Accessing credentials
+## Accessing Credentials
 
-You can find your credentials in the Apps section of the dashboard:
+You can find your credentials in the **Apps** section of the dashboard:
 
 1. Click on your app's name.
-2. In the Overview tab, you will find your `client_id`.
-3. The `client_secret` is visible only during initial creation. If you didn't save it, you must click Regenerate Secret.
+2. In the **Overview** tab, you will find your `client_id`.
+3. The `client_secret` is visible only during initial creation. If you didn't save it, you must click **Regenerate Secret**.
 
 ---
 
-## Security best practice: use-once pattern
+## Security Best Practice: Use-Once Pattern
 
-We recommend a use-once architectural pattern for your `client_secret`. This minimizes the risk of secret exposure.
+We recommend a "use-once" architectural pattern for your `client_secret`. This minimizes the risk of secret exposure.
 
 Instead of your authentication service reading the `client_secret` from a database for every token request, follow this flow:
 
-1. Cold start: Your auth service starts and retrieves the `client_secret` from a secure vault.
-2. Bootstrap: Call the `/token` endpoint with the secret to get an initial access token plus refresh token.
-3. Discard: The service can now discard the `client_secret` from its local memory.
-4. Maintenance: For all subsequent requests, use the refresh token to obtain new access tokens.
+1. **Cold Start**: Your auth service starts and retrieves the `client_secret` from a secure vault.
+2. **Bootstrap**: Call the token endpoint with the secret to get an initial access token plus refresh token.
+3. **Discard**: The service can now discard the `client_secret` from its local memory.
+4. **Maintenance**: For all subsequent requests, use the refresh token to obtain new access tokens.
 
 This way, the `client_secret` is only active in your infrastructure for a few seconds.
 
-<Tip>
-  If your auth service is serverless, use a caching layer like Redis or Momento to store the refresh token between invocations.
-</Tip>
-
 ---
 
-## Rotating secrets
+## Rotating Secrets
 
 Security is dynamic. If you suspect a `client_secret` has been compromised, you should rotate it immediately:
 
-- Navigate to your app's Settings.
-- Click Regenerate `client_secret`.
+- Navigate to your app's **Settings**.
+- Click **Regenerate client_secret**.
 - Update your auth service with the new secret and restart it.
 
 <Warning>
-  Regenerating a secret invalidates the old one instantly. Any service attempting to use the old secret or a refresh token associated with it will receive a `401 Unauthorized` error.
+  Regenerating a secret invalidates the old one instantly. Any service attempting to use the old secret or a refresh token associated with it will receive an authorization error.
 </Warning>

@@ -7,23 +7,23 @@ description: "Sign up, create your app, and parse your first document in minutes
 
 Create your TrueParser account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-Your tenant account is free. No credit card is required to get started.
+Your account is free. No credit card is required to get started.
 
 ---
 
 ## 2. Create an App
 
-To connect to TrueParser, you need a JWT access token. Tokens are issued through an OAuth 2 machine-to-machine flow. First, create an app in the dashboard to generate your credentials.
+To connect to TrueParser, you need a security token. Tokens are issued through an OAuth 2 machine-to-machine flow. First, create an app in the dashboard to generate your credentials.
 
 <Steps>
   <Step title="Open the Apps section">
     Navigate to **Apps** in the dashboard sidebar and click **Add Application**.
   </Step>
   <Step title="Name your app">
-    Identify the product or service connecting to TrueParser, for example `my-legal-analyzer-prod`.
+    Identify the service connecting to TrueParser, for example `my-legal-analyzer-prod`.
   </Step>
   <Step title="Set the License Region">
-    Choose the **License Region** closest to your primary data region (e.g., `aws-us-east-1`).
+    Choose the geographic region closest to your primary data region (e.g., `aws-us-east-1`).
   </Step>
   <Step title="Save your credentials">
     Immediately copy your **Client ID** and **Client Secret**. The secret is shown only once.
@@ -32,19 +32,19 @@ To connect to TrueParser, you need a JWT access token. Tokens are issued through
 
 ---
 
-## 3. Activate a Plan
+## 3. Recommended: Activate a Plan
 
-Your app requires an active plan to issue tokens and parse documents. Select a plan (including the **Free** tier) from the **Plans** tab of your application.
+To parse documents, your app needs the usage limits provided by a plan. While you can obtain a token without a plan, it will be rejected by the system as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
 
-<Info>
-  Each app requires its own plan. An app without an active plan cannot issue tokens. Only one app per account can be on the Free plan.
-</Info>
+<Warning>
+  **Plan Status.** If your app is assigned a plan that has been **Retired**, the dashboard will reject your request for an access token entirely. Always ensure your app is linked to an **Active** or **Archived** plan.
+</Warning>
 
 ---
 
 ## 4. Get an Access Token
 
-Exchange your credentials for a JWT access token using the OAuth 2 client credentials flow.
+Exchange your credentials for a security token using the OAuth 2 client credentials flow.
 
 ```bash
 curl -X POST https://api.trueparser.com/connect/token \
