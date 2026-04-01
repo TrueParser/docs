@@ -4,7 +4,7 @@ This repository contains the source code for the official TrueParser documentati
 
 ## Project Overview
 
-TrueParser is a unified orchestration platform for technical document parsing. This documentation is divided into two primary sections:
+TrueParser is a unified orchestration platform for multi-format parsing and structured data extraction. This documentation is divided into two primary sections:
 
 1.  **[Platform Guides](/index)**: Introduction, Quickstart, and Dashboard guides.
 2.  **[API Reference](/api-reference/endpoints)**: Detailed endpoint documentation for document ingestion and lifecycle management.

@@ -3,53 +3,49 @@ title: "Security and Hardening"
 description: "An overview of the security architecture and isolation models powering the TrueParser platform."
 ---
 
-TrueParser is a unified orchestration platform for technical document parsing. This documentation is divided into two primary sections:
-
-1.  **[Platform Guides](/index)**: Introduction, Quickstart, and Dashboard guides.
-2.  **[API Reference](/api-reference/endpoints)**: Detailed endpoint documentation for document ingestion and lifecycle management.
+TrueParser is a unified orchestration platform for multi-format parsing and structured data extraction. Security is baked into the orchestration layer, ensuring isolation across diverse technical datasets.
 
 ---
 
-## 1. Authentication infrastructure
+## 1. Authentication Infrastructure
 
 TrueParser uses a hardened OAuth2 implementation to manage access across the platform.
 
-### Standardized flows
+### Standardized Flows
 
-- Client Credentials: Used for secure machine-to-machine communication and parsing orchestration.
-- Resource Owner Password: For interactive dashboard access using trusted identifiers.
-- Refresh Token: For secure session extension without re-exposing sensitive credentials.
+- **Client Credentials**: Used for secure machine-to-machine communication and parsing orchestration.
+- **Refresh Token**: For secure session extension without re-exposing sensitive credentials.
 
-### Token security
+### Token Security
 
-- Short-lived access: Tokens are limited to 15 minutes by default, minimizing the attack window for compromised credentials.
-- Asymmetric signing: All tokens are signed using 2048-bit RSA keys.
-- Least privilege scopes: Access is strictly gated by specialized scopes such as `TrueParser.API` for machine-to-machine access.
+- **Short-lived access**: Access tokens are limited to 15 minutes by default, minimizing the attack window for compromised credentials.
+- **Asymmetric signing**: All tokens are signed using 2048-bit RSA keys.
+- **Least privilege scopes**: Access is strictly gated by specialized scopes such as `TrueParser.API`.
 
 ---
 
-## 2. Multi-tenant cryptographic isolation
+## 2. Multi-tenant Cryptographic Isolation
 
 TrueParser enforces hard isolation at the cryptographic layer, ensuring that tenants never share security boundaries.
 
-### Per-tenant signing keys
+### Per-tenant Signing Keys
 
 Unlike platforms that use a single global signing key, TrueParser assigns every tenant its own unique 2048-bit RSA key pair.
 
-- Cryptographic silos: A compromise of one tenant's environment cannot lead to token forgery for another.
-- Tenant-specific JWKS: Public keys are exposed via unique, tenant-specific discovery endpoints.
+- **Cryptographic Silos**: A compromise of one tenant's environment cannot lead to token forgery for another.
+- **Tenant-specific JWKS**: Public keys are exposed via unique, tenant-specific discovery endpoints.
 
 ---
 
-## 3. Key management and encryption
+## 3. Key Management and Encryption
 
 We use enterprise-grade encryption and secure vaulting to manage sensitive cryptographic material.
 
-### Encryption at rest
+### Encryption at Rest
 
 All private keys and sensitive metadata are encrypted at rest using industry-standard 256-bit encryption and a secure, vault-backed master key.
 
-### Key versioning and rotation
+### Key Versioning and Rotation
 
 Every encrypted key is tagged with a version identifier. This allows for:
 
@@ -59,40 +55,40 @@ Every encrypted key is tagged with a version identifier. This allows for:
 
 ---
 
-## 4. Platform integrity and isolation
+## 4. Platform Integrity and Isolation
 
 Security is enforced at every layer of the stack, from API entry points to secure, tenant-isolated storage.
 
-### Identity and permissions
+### Identity and Permissions
 
-- Separation of concerns: Human administrator roles are strictly isolated from machine-to-machine client permissions.
-- Request integrity: Every request is validated against the platform's current security state to ensure only authorized tokens from active applications are permitted.
+- **Separation of Concerns**: Human administrator roles are strictly isolated from machine-to-machine client permissions.
+- **Request Integrity**: Every request is validated against the platform's current security state.
 
-### Infrastructure defense
+### Infrastructure Defense
 
-- Distributed coordination: Critical security operations use distributed locks to ensure state changes are atomic across our global cluster.
-- Rate limiting: Specialized policies protect sensitive endpoints such as authentication and account management from brute-force and DDoS attempts.
+- **Rate Limiting**: Specialized policies protect sensitive endpoints such as authentication and account management from brute-force and DDoS attempts.
+- **Tenant Isolation**: Parsing nodes maintain strict logical separation of data during ingestion and extraction.
 
 ---
 
-## 5. Origin security and data sovereignty
+## 5. Origin Security
 
-### Origin-based whitelisting
+### Origin-based Normalization
 
-Stolen tokens| Slots | Recommended Use |
-| --- | --- |
+To prevent unauthorized cross-origin requests, TrueParser enforces domain-based security metadata.
+
+| Slot | Recommended Use |
+| :--- | :--- |
 | `allowed_domain_1` | Production, e.g., `myapp.com` |
 | `allowed_domain_2` | Staging, e.g., `staging.myapp.com` |
 | `allowed_domain_3` | Local development, e.g., `localhost:3000` |
-JWT. Connections from unauthorized domains are rejected at the edge.
 
-### Data sovereignty
-
-- Regional pinning: Every app is geographically pinned to a specific region.
-- Data sharding: Document metadata is stored in isolated database shards localized to the app's region, ensuring compliance with local data residency requirements.
+<Note>
+  Stolen tokens are mitigated by edge-level origin validation. Connections from unauthorized domains are rejected before reaching the parsing engines.
+</Note>
 
 ---
 
-<Info>
-  Audit trail: All major security actions, including tenant creation and key revocation, generate distributed events, providing a comprehensive audit trail for compliance and monitoring.
-</Info>
+<Note>
+  **Audit Trail**: All major security actions, including tenant creation and key revocation, generate distributed events, providing a comprehensive audit trail for compliance and monitoring.
+</Note>
