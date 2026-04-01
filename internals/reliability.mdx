@@ -1,0 +1,44 @@
+---
+title: "Reliability"
+description: "How TrueParser is built for resilience and where to check service status."
+---
+
+## Architecture
+
+TrueParser nodes are **stateless**. Each regional cluster runs multiple nodes backed by a single Redis instance in high-availability mode. Because all session state lives in Redis and not on individual nodes, any node in a region can serve any document in that region at any time.
+
+When a node becomes unhealthy, DNS load balancing automatically routes new connections to healthy nodes in the same cluster. This transition is invisible to your users — no client-side failover logic is required.
+
+---
+
+## Automatic Load Shedding
+
+TrueParser nodes continuously monitor memory, CPU load, and active connection count. When a node approaches its limits, it automatically removes itself from the DNS routing pool and stops accepting new connections.
+
+DNS load balancing ensures all new connections are routed to healthy nodes in the cluster automatically — no client-side handling or reconnection logic is required for node-level health events.
+
+**What this means for your application:**
+
+- **Zero dropped sessions** — Existing active sessions are never dropped during a node health event. Current users finish their work undisturbed.
+- **Transparent DNS steering** — New connections are transparently routed to healthy nodes by DNS as soon as a node reaches its high-water mark of 80% occupancy.
+- **Automatic recovery** — Once a node's memory or connection count returns to safe levels, it automatically re-enters the pool without any intervention.
+- **Thundering herd protection** — Rejected connection attempts receive a jittered `Retry-After` instruction, preventing massive reconnection spikes from overwhelming healthy nodes during a regional shift.
+
+In the rare event that all nodes in a region become unavailable simultaneously, the entire cluster becomes unreachable. In this case, connect to a different available region and monitor [status.trueparser.com](https://status.trueparser.com) for recovery updates.
+```
+
+---
+
+## SLA
+
+TrueParser does not publish an uptime SLA for standard plans. Enterprise plans include a contractual SLA. [Contact us](mailto:support@trueparser.com) for Enterprise pricing.
+
+---
+
+## Status Page
+
+Live service status, incident history, and maintenance notices are available at:
+
+**[status.trueparser.com](https://status.trueparser.com)**
+
+Subscribe to status updates to receive notifications for incidents and planned maintenance windows.

@@ -1,0 +1,155 @@
+{
+  "theme": "palm",
+  "name": "TrueParser",
+  "description": "Unified orchestration for independently versioned parsing engines across spatial, CAD, SQL, email, PDF, and Office formats. Transform diverse documents into structured, queryable data.",
+  "seo": {
+    "metatags": {
+      "canonical": "https://docs.trueparser.com"
+    },
+    "indexing": "navigable"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs",
+    "latex": true
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "background": {
+    "decoration": "windows"
+  },
+  "interaction": {
+    "drilldown": true
+  },
+  "metadata": {
+    "timestamp": true
+  },
+  "colors": {
+    "primary": "#0047AB",
+    "light": "#0058BC",
+    "dark": "#0047AB"
+  },
+  "favicon": "/favicon.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting started",
+            "icon": "rocket-launch",
+            "pages": [
+              "index",
+              "quickstart",
+              "authentication",
+              "security"
+            ]
+          },
+          {
+            "group": "Dashboard",
+            "icon": "network-wired",
+            "pages": [
+              "dashboard/overview",
+              "dashboard/onboarding",
+              "dashboard/license-regions",
+              "dashboard/app-setup",
+              "dashboard/billing"
+            ]
+          },
+          {
+            "group": "Parsing Engine",
+            "icon": "microchip",
+            "pages": [
+              "parsing-engine/overview",
+              "parsing-engine/ingestion",
+              "parsing-engine/routing",
+              "parsing-engine/storage",
+              "parsing-engine/delivery"
+            ]
+          },
+          {
+            "group": "Internals",
+            "icon": "gears",
+            "pages": [
+              "internals/plans-and-limits",
+              "internals/error-reference",
+              "internals/reliability",
+              "internals/rate-limits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "book-open",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "icon": "code",
+            "pages": [
+              "api-reference/discovery",
+              "api-reference/websocket",
+              "api-reference/usage",
+              "api-reference/health",
+              "api-reference/metrics"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Blog",
+          "href": "https://trueparser.com/blog",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@trueparser.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.trueparser.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/trueparser",
+      "github": "https://github.com/trueparser",
+      "linkedin": "https://linkedin.com/company/trueparser"
+    }
+  }
+}

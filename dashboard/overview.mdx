@@ -1,0 +1,78 @@
+---
+title: "Dashboard Overview"
+description: "Understand how TrueParser manages your account, applications, and authentication tokens."
+---
+
+The TrueParser infrastructure is divided into the Dashboard and the managed sync layer.
+
+The Dashboard is responsible for the management, security, and regional orchestration of your ecosystem.
+
+---
+
+## Core elements
+
+The Dashboard manages four primary entities.
+
+### 1. Tenant
+
+A **Tenant** represents your organization or root account.
+
+- Top-level container for resources, billing, and team members.
+- Each tenant has its own unique signing keys for JWT issuance, ensuring cryptographic isolation from other organizations.
+
+### 2. Apps
+
+Within a tenant, you can create multiple **Apps**. Each app represents a specific product or environment.
+
+- **Identity**: Each app holds its own unique `client_id` and `client_secret`.
+- **Data residency**: Every app is pinned to a **License Region** during creation.
+- **Data isolation**: Document metadata is stored in isolated, regional database shards.
+
+### 3. Plans
+
+A **Plan** defines the performance characteristics and usage limits for an app.
+
+- **Limits**: Controls maximum concurrent connections, document counts, and operations per minute.
+- **The one free rule**: Each tenant is limited to exactly one application on a Free Plan.
+- **Flexibility**: Plans can be upgraded or downgraded through the dashboard.
+
+### 4. Nodes
+
+TrueParser maintains a **Global Registry** for its physical infrastructure to ensure high availability and intelligent routing.
+
+- **Node management**: We manage a global fleet of WebSocket nodes.
+- **Regional orchestration**: The platform allows for zero-downtime maintenance and dynamic fleet scaling.
+- **Discovery backbone**: Our infrastructure powers the [Discovery API](/api-reference/discovery), resolving the best physical node for any document session in real time.
+
+---
+
+## Security enforcement
+
+TrueParser defines security boundaries at the management layer that are then enforced at the network edge.
+
+### Allowed domains
+
+To prevent token theft, you can pin an application to up to 3 specific domains.
+
+- **Baked-in security**: These domains are embedded directly into your JWT claims.
+- **Edge validation**: Managed sync nodes check the `Origin` header of every incoming connection against these claims. If they do not match, the connection is rejected instantly.
+
+---
+
+## The token lifecycle
+
+TrueParser uses standard OAuth 2 flows for account management and synchronization.
+
+- **Machine-to-machine**: Your backend server exchanges app credentials for a token, which is then passed to collaborative clients.
+- **Resource owner password**: For interactive dashboard access using trusted identifiers.
+
+### Best practice: token rotation
+
+We support refresh tokens to minimize the exposure of your sensitive credentials.
+
+1. **Access token**: Short-lived. Used by your clients to connect.
+2. **Refresh token**: Long-lived. Used by your backend to request new access tokens without needing to re-send the `client_secret`.
+
+<Info>
+  Pro tip: Your authentication service should fetch the `client_secret` once during a cold start to obtain a token pair, then use the refresh token for all subsequent rotations. This allows you to purge the sensitive secret from active memory.
+</Info>

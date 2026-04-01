@@ -1,0 +1,130 @@
+---
+title: "Authentication"
+description: "How TrueParser issues and validates JWT tokens for access."
+---
+
+TrueParser uses the OAuth 2 machine-to-machine (M2M) client credentials flow to authenticate applications. This ensures that only authorized callers can submit documents and retrieve parsing results.
+
+---
+
+## Obtaining a Token
+
+Call the token endpoint from your backend server only. Never expose your `client_secret` in client-side code (browsers or mobile apps).
+
+```bash
+curl -X POST https://api.trueparser.com/connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "scope=TrueParser.API offline_access"
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "eyJ...",
+  "refresh_token": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900
+}
+```
+
+| Field | Value |
+| --- | --- |
+| `expires_in` | 900 seconds (15 minutes) |
+| `scope` | `TrueParser.API offline_access` |
+
+<Warning>
+  `offline_access` scope is required to receive a `refresh_token`. Without it, you cannot renew sessions without re-authenticating with your `client_secret`.
+</Warning>
+
+---
+
+## Required Scopes and Audience
+
+TrueParser enforces identity verification using the standard `aud` and `scope` claims. Your JWT must meet these criteria or the request will be rejected with a `401 Unauthorized` error.
+
+### 1. Audience Enforcement
+The `aud` claim must be exactly `TrueParser.API`. This ensures the token was intended for the TrueParser platform.
+
+### 2. Scope Validation
+The token must include `TrueParser.API` in the `scope` claim.
+
+---
+
+## JWT Claims
+
+The access token is a signed JWT containing your application's identity and resource limits.
+
+```json
+{
+  "iss": "https://api.trueparser.com",
+  "sub": "your_client_id",
+  "aud": "TrueParser.API",
+  "tenantid": "3f9a6c6e-...",
+  "appId": "7b1c0d8c-...",
+  "licenseRegionCode": "aws-us-east-1",
+  "allowedEngines": ["PDF", "GIS", "CAD", "SQL"],
+  "limits": {
+    "maxPagesPerMonth": 5000,
+    "maxDocumentSizeMb": 100,
+    "requestsPerMinute": 60
+  },
+  "exp": 1740470000
+}
+```
+
+### Claim Reference
+
+| Claim | Description |
+| --- | --- |
+| `tenantid` | Your unique tenant identifier for multi-tenant isolation. |
+| `appId` | The identifier for the specific application within your tenant. |
+| `allowedEngines` | List of parser engines enabled for this application. |
+| `limits` | Object containing your plan-specific resource caps. |
+
+---
+
+## Using the Token
+
+TrueParser is a REST-based platform. All API requests must include the access token in the `Authorization` header.
+
+```bash
+curl -X GET https://api.trueparser.com/api/v1/documents/{documentId}/result \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+---
+
+## Allowed Domains (CORS)
+
+Each app supports up to 3 allowed domains. This security feature prevents unauthorized third-party domains from using your API keys in browser-based ingestion flows.
+
+1. **Origin Enforcement**: When a client connects, the service checks the `Origin` header against your configured domains.
+2. **Automatic Rejection**: If the domain does not match, the request is rejected immediately.
+
+| Slot | Recommended Use |
+| --- | --- |
+| `allowed_domain_1` | Production, e.g., `myapp.com` |
+| `allowed_domain_2` | Staging, e.g., `staging.myapp.com` |
+| `allowed_domain_3` | Local development, e.g., `localhost:3000` |
+
+---
+
+## Token Renewal
+
+Access tokens are valid for 15 minutes. Use the `refresh_token` to obtain a new access token without re-sending your `client_secret`.
+
+```bash
+curl -X POST https://api.trueparser.com/connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token" \
+  -d "refresh_token=YOUR_REFRESH_TOKEN" \
+  -d "client_id=YOUR_CLIENT_ID"
+```
+
+<Info>
+  Refresh tokens are valid for 7 days. Every refresh issues a new refresh token and invalidates the old one.
+</Info>

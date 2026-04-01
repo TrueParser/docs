@@ -1,0 +1,34 @@
+---
+title: "Result Persistence"
+description: "Managing document storage, paths, and retention."
+---
+
+## Result Persistence
+
+TrueParser provides reliable persistence for your parsed results, ensuring that structured data is available for retrieval by your downstream applications.
+
+### Tenant-Isolated Storage
+
+All raw uploads and parsed artifacts are stored in secure, tenant-isolated storage. By default, TrueParser uses a managed global storage layer, but enterprise plans can configure dedicated storage overrides in the dashboard.
+
+This structure ensures strict isolation between your applications and simplifies artifact management.
+
+## 3-Hour Retention Window
+
+TrueParser is an **operational parsing platform**, not a permanent archive.
+
+> [!IMPORTANT]
+> Parsed artifacts are retained for **3 hours** by default. After this window, the jobs and their results are purged from the system.
+
+### Why 3 Hours?
+Short-lived retention allows TrueParser to remain a stateless, high-performance "pass-through" for your data. It is intended that your application:
+1. Submits a document.
+2. Polls for completion.
+3. Downloads the structured JSON.
+4. Persists the result into your own specialized storage or database.
+
+## Document Identifiers & Overwrites
+
+If you supply a `documentId` during ingestion, TrueParser treats it as the target key for that retention window. If you submit a new document with the same `documentId` within 3 hours, the existing artifact will be overwritten. This allows for simple idempotency or re-parsing workflows without manual deletion.
+
+After the 3-hour window expires, the `documentId` becomes available for reuse.

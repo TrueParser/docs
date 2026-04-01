@@ -1,0 +1,57 @@
+---
+title: "Discovery"
+description: "Resolve the correct regional node for a document before connecting."
+---
+
+TrueParser is a globally distributed system. While your App's metadata lives in a **License Region** (e.g., `aws-eu-west-1`), your documents are hosted on **Node Regions** (e.g., `eu-central-1`) across our global WebSocket fleet.
+
+Use the Discovery endpoint to find exactly which node is currently hosting a document.
+
+---
+
+## Endpoint
+
+```http
+GET https://{region-code}.trueparser.net/discovery
+```
+
+### The Global Registry
+
+You can call the `/discovery` endpoint on any active TrueParser node. Any regional node can look up the location of any document in our global registry and return the correct destination.
+
+---
+
+## Authentication
+
+Discovery requires a valid App JWT. Pass it via:
+
+| Method                                 | How                                       |
+| :------------------------------------- | :---------------------------------------- |
+| **Authorization header** (recommended) | `Authorization: Bearer YOUR_ACCESS_TOKEN` |
+| **Query parameter**                    | `?token=YOUR_ACCESS_TOKEN`                |
+
+---
+
+## Query Parameters
+
+| Parameter      | Type   | Required | Description                                                                                            |
+| :------------- | :----- | :------- | :----------------------------------------------------------------------------------------------------- |
+| `documentName` | string | Yes      | Unprefixed document ID (e.g., `my-doc-123`). The system resolves the tenant/app context from your JWT. |
+
+---
+
+## Response
+
+```json
+{
+  "region": "eu-central-1",
+  "url": "wss://eu-central-1.trueparser.net/my-doc-id",
+  "isNew": false
+}
+```
+
+| Field    | Type    | Description                                                                       |
+| :------- | :------ | :-------------------------------------------------------------------------------- |
+| `region` | string  | The cloud region code (e.g., `eu-central-1`) currently hosting the doc.           |
+| `url`    | string  | The full WebSocket URL including the doc ID. Include this as your provider's URL. |
+| `isNew`  | boolean | `true` if this document is fresh. You can connect to your closest region.         |

@@ -1,0 +1,105 @@
+---
+title: "Quickstart"
+description: "Sign up, create your app, and parse your first document in minutes."
+---
+
+## 1. Sign up
+
+Create your TrueParser account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
+
+Your tenant account is free. No credit card is required to get started.
+
+---
+
+## 2. Create an App
+
+To connect to TrueParser, you need a JWT access token. Tokens are issued through an OAuth 2 machine-to-machine flow. First, create an app in the dashboard to generate your credentials.
+
+<Steps>
+  <Step title="Open the Apps section">
+    Navigate to **Apps** in the dashboard sidebar and click **Add Application**.
+  </Step>
+  <Step title="Name your app">
+    Identify the product or service connecting to TrueParser, for example `my-legal-analyzer-prod`.
+  </Step>
+  <Step title="Set the License Region">
+    Choose the **License Region** closest to your primary data region (e.g., `aws-us-east-1`).
+  </Step>
+  <Step title="Save your credentials">
+    Immediately copy your **Client ID** and **Client Secret**. The secret is shown only once.
+  </Step>
+</Steps>
+
+---
+
+## 3. Activate a Plan
+
+Your app requires an active plan to issue tokens and parse documents. Select a plan (including the **Free** tier) from the **Plans** tab of your application.
+
+<Info>
+  Each app requires its own plan. An app without an active plan cannot issue tokens. Only one app per account can be on the Free plan.
+</Info>
+
+---
+
+## 4. Get an Access Token
+
+Exchange your credentials for a JWT access token using the OAuth 2 client credentials flow.
+
+```bash
+curl -X POST https://api.trueparser.com/connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "scope=TrueParser.API offline_access"
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "Bearer",
+  "expires_in": 900
+}
+```
+
+---
+
+## 5. Parse a Document
+
+Submit your first document for parsing using the `POST /api/v1/documents/parse` endpoint.
+
+```bash
+curl -X POST https://api.trueparser.com/api/v1/documents/parse \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -F "file=@/path/to/document.pdf" \
+  -F "documentType=PDF"
+```
+
+**Response (202 Accepted):**
+
+```json
+{
+  "documentId": "7b1c0d8c-...",
+  "status": "Queued"
+}
+```
+
+---
+
+## 6. Retrieve Results
+
+Once processing is complete, download your structured JSON results.
+
+```bash
+curl -X GET https://api.trueparser.com/api/v1/documents/7b1c0d8c-.../result \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+<CardGroup cols={1}>
+  <Card title="Learn about Result Delivery" icon="file-export" href="/parsing-engine/delivery">
+    Understand NDJSON vs. JSON formats and how high-volume streaming works.
+  </Card>
+</CardGroup>

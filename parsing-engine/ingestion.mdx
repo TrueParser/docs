@@ -1,0 +1,39 @@
+---
+title: "Document Ingestion"
+description: "How to submit files and streams to the TrueParser Parsing Engine."
+---
+
+TrueParser accepts document ingestion through a high-performance HTTP API. The ingestion process is designed to be robust, handling both direct multipart uploads and raw streams.
+
+## Submission Flow
+
+The primary endpoint for document ingestion is `POST /api/v1/documents/parse`.
+
+### Ingestion Contract
+- **Authentication**: Requires a valid JWT access token issued by the Dashboard.
+- **Payload**: Accepts a multipart file upload.
+- **Identification**: You can optionally supply a `documentType` (e.g., `PDF`, `DWG`, `SHP_ZIP`). If omitted, TrueParser will attempt to detect the format automatically.
+
+### Explicit Routing Requirements
+Some technical formats require explicit hints to ensure accurate parsing:
+- **SQL**: Requires a `sqlDialect` (e.g., `PostgreSQL`, `Snowflake`).
+- **CSV**: Requires a `csvRoute` to determine if it should be treated as a spatial GIS dataset or a tabular Office document.
+- **PDF**: Can accept a `pdfMode` for specialized extraction (e.g., `SingleColumn`, `MultiColumn`).
+
+## Identification & Metadata
+
+### Document Identifiers
+You can provide your own `documentId` at submission time to maintain consistency with your internal systems. If you don't provide one, TrueParser will automatically generate a unique GUID for the job.
+
+> [!NOTE]
+> `documentId` uniqueness is enforced only within the active 3-hour retention window.
+
+### Custom Metadata
+The ingestion API allows you to attach custom metadata JSON to any job. This metadata is carried through the pipeline and included in the final parsed output, providing traceability for your downstream applications.
+
+## Performance Considerations
+
+TrueParser is optimized for high-volume ingestion. To achieve maximum throughput:
+- **Streaming Ingestion**: Pass raw streams directly to the API where possible.
+- **Zero-Disk Buffering**: The engine processes data from memory to storage, avoiding expensive disk I/O operations on the system.
+- **Rate Limiting**: Ingestion is subject to your plan's concurrency and byte limits. Check your [Usage](/dashboard/billing) in the dashboard for current thresholds.

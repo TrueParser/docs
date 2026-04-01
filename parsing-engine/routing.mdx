@@ -1,0 +1,42 @@
+---
+title: "Intelligent Routing"
+description: "How TrueParser dispatches documents to specialized parsing engines."
+---
+
+TrueParser does not treat all documents the same. Behind the unified API layer is an intelligent routing system that routes the document to the appropriate parser based on the document's structure, extension, or your explicit instructions.
+
+## The Routing Decision
+
+When a document enters the system, TrueParser determines the optimal engine using the following priority:
+
+### 1. Explicit Declaration
+If you provide a `documentType` in your request, TrueParser honors that routing immediately. This is the recommended approach for production pipelines where the source format is known.
+
+### 2. Automatic Detection
+If no type is provided, the platform uses a combination of filename heuristics, MIME types, and signature sniffing to identify the format. Once identified, it is routed to the corresponding family (e.g., `TrueParserGis` for Geospatial, `TrueParserMsOffice` for Word/Excel).
+
+## Case Study: The CSV Dilemma
+
+CSV is a unique format because it can represent two very different kinds of data:
+- **GIS/Spatial**: Coordinate lists and point layers.
+- **Tabular/Office**: Standard spreadsheets and reports.
+
+To resolve this, TrueParser requires an explicit `csvRoute` at ingestion time. This ensures that your spatial CSV is processed with the full GIS engine (geometry, WKT, BBOX) while your financial reports are handled by the lightweight tabular engine.
+
+## Specialized Engine Families
+
+TrueParser orchestrates the following specialized engine families:
+
+- **TrueParserPdf**: Technical and Vision-based PDF extraction.
+- **TrueParserGis**: High-throughput vector spatial ingestion.
+- **TrueParserCad**: DWG/DXF normalization and world-coordinate flattening.
+- **TrueParserSql**: Multi-dialect SQL statement analysis and logic extraction.
+- **TrueParserMailKit**: Email forensics for PST/OST/EML archives.
+- **TrueParserMsOffice / TrueParserOpenDoc**: Enterprise document processing.
+
+## Benefits of Decoupled Routing
+
+By separating routing from the core API:
+- **Scalable Processing**: The system can scale processing capacity independently for different format families based on your actual traffic patterns.
+- **Version Isolation**: You can benefit from engine-specific updates (e.g., a new SQL dialect) without any changes to your ingestion code.
+- **Reliability**: A failure in one engine family does not impact the rest of the parsing platform.

@@ -1,0 +1,131 @@
+---
+title: "Plans and Limits"
+description: "How TrueParser enforces plan limits and what your application receives when limits are hit."
+---
+
+Every TrueParser application has resource limits defined by its plan. These limits are embedded in your JWT and enforced at connection time - no database lookup required.
+
+<Info>
+  TrueParser limits apply to concurrent usage only, not total storage or document count. You can have unlimited documents in your system. Limits only apply to how many are actively open and syncing at the same time.
+</Info>
+
+---
+
+## Plan limits
+
+| Limit | Description |
+| --- | --- |
+| `maxConnections` | Total concurrent WebSocket connections across your entire application |
+| `maxDocuments` | Total concurrent active documents across your entire application |
+| `maxUsersPerDoc` | Maximum concurrent users inside a single document session |
+| `opsPerMinute` | Maximum CRDT operations per minute |
+
+See the [Pricing page](https://trueparser.com/pricing) for limit values per plan.
+
+---
+
+## Enforcement
+
+### When limits are hit
+
+All connection limits are enforced at handshake. The connection is rejected before it is established - no active connections are dropped.
+
+| Limit | Close code | Message | Enforcement point |
+| --- | --- | --- | --- |
+| `maxConnections` | `4004` | `Connection limit exceeded: <LIMIT>` | Handshake |
+| `maxDocuments` | `4005` | `Document limit exceeded: <LIMIT> (active: <COUNT>)` | Document load |
+| `maxUsersPerDoc` | `4008` | `Document user limit exceeded: <LIMIT>` | Handshake |
+| `opsPerMinute` | `4006` | `Rate limit exceeded: <LIMIT> ops/min` | Active session |
+
+<Info>
+  `opsPerMinute` is the only limit that can be hit during an active session. When exceeded, the connection is dropped to protect sync integrity across all connected clients.
+</Info>
+
+### Enforcement strategy
+
+**Global limits** - `maxConnections`, `maxDocuments`, and `maxUsersPerDoc` are enforced globally across the entire cluster. A tenant cannot bypass limits by spreading connections across multiple nodes.
+
+**Regional limits** - `opsPerMinute` is enforced via local Redis within the node's region. This allows millisecond-level rate checking without global database latency.
+
+---
+
+## Handling limit errors
+
+```js
+provider.ws.addEventListener("close", (event) => {
+  switch (event.code) {
+    case 4004:
+      showUpgradePrompt("connection limit")
+      break
+    case 4005:
+      showUpgradePrompt("document limit")
+      break
+    case 4008:
+      showError("This document is full. Maximum collaborators reached.")
+      break
+    case 4006:
+      setTimeout(() => reconnect(nodeUrl, docId, token), 30000)
+      break
+  }
+})
+```
+
+---
+
+## Usage visibility
+
+TrueParser does not provide usage metrics in the dashboard. Since usage is ephemeral and real time, a static dashboard view would be outdated the moment it loaded. Instead, tenants can query the Usage API directly using their JWT to get a live snapshot of current consumption.
+
+### Usage API
+
+```http
+GET https://ws.trueparser.com/usage
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Or using a query parameter:
+
+```http
+GET https://ws.trueparser.com/usage?token=YOUR_ACCESS_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "tenantId": "550e8400-e29b-41d4-a716-446655440000",
+  "appId": "770k8400-f29b-41d4-b716-556655449999",
+  "usage": {
+    "connections": {
+      "current": 82,
+      "limit": 100,
+      "percent": 82.0,
+      "status": "warning"
+    },
+    "documents": {
+      "current": 4,
+      "limit": 20,
+      "percent": 20.0,
+      "status": "healthy"
+    }
+  },
+  "timestamp": "2026-02-25T14:40:00.000Z"
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `usage.connections.current` | Total active WebSocket connections across all regions |
+| `usage.documents.current` | Total unique documents currently being synced |
+| `status` | `healthy` below 75%, `warning` between 75-89%, `critical` at 90% or above |
+| `timestamp` | UTC time of the snapshot |
+
+<Info>
+  The JWT identifies the tenant and application. Users can safely call this endpoint directly from the browser. They will only ever see their own application's data.
+</Info>
+
+### Recommended usage
+
+- Poll once per minute for admin dashboards
+- Use `percent` and `status` fields to drive progress bars or color-coded indicators
+- Trigger an upgrade prompt when `status` reaches `warning` to prevent users hitting hard limits in production

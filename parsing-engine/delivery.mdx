@@ -1,0 +1,41 @@
+---
+title: "Result Retrieval"
+description: "How to poll for status and retrieve final parsed results."
+---
+
+Once a document is ingested, it moves through the async parsing process. To retrieve the result, your application follows a standard Polling and Retrieval pattern.
+
+## Status Polling
+
+You can check the progress of a parse job using the `GET /api/v1/documents/{documentId}/status` endpoint.
+
+The status response includes the current lifecycle state:
+- `Queued`: The job is waiting to be processed.
+- `Processing`: The engine is actively parsing the document.
+- `Completed`: The result has been materialized and is ready for download.
+- `Failed`: An error occurred during extraction (detailed error codes are included).
+
+## Retrieving Results
+
+The final artifact is retrieved via `GET /api/v1/documents/{documentId}/result`.
+
+### Retrieval Behavior
+- **While Processing**: Returns a `202 Accepted` status, indicating the result is not yet ready.
+- **On Success**: Streams the final JSON or NDJSON artifact directly from storage.
+- **On Failure**: Returns a `422 Unprocessable Entity` error with details on the parse failure.
+
+## Output Formats
+
+TrueParser delivers structured data in two standard formats, depending on your needs.
+
+### 1. NDJSON (Default Streaming)
+Newline Delimited JSON is the native output of the TrueParser engines. Each line is a standalone JSON object representing a record (e.g., a PDF block, a CAD entity, or a GIS feature).
+- **Best For**: Large-scale processing, streaming ingestion into databases, and memory-efficient consumption.
+
+### 2. JSON Array (Convenience)
+If you prefer a single materialized document, TrueParser can wrap the records into a standard JSON array.
+- **Best For**: Small to medium-sized documents, manual inspection, and standard JSON parsers.
+- **How to request**: Use the `.json` extension in the result request or set the `TRUEPARSER_OUTPUT_FORMAT=json` header.
+
+## Schema Versioning
+Every result artifact includes a `schema_version` and `document_format` marker. These contracts are stable within a major version, ensuring your downstream logic remains robust even as underlying parser engines are updated.

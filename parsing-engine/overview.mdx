@@ -1,0 +1,33 @@
+---
+title: "Overview"
+description: "Understanding the TrueParser Parsing Engine architecture and streaming-first philosophy."
+---
+
+The TrueParser Parsing Engine is the core execution layer of the platform. It is a unified orchestration system that sits in front of multiple specialized, independently versioned parsing engines (GIS, CAD, SQL, PDF, etc.) and exposes them through a single, consistent API.
+
+Unlike monolithic parsers, TrueParser uses a scalable architecture to handle technical and enterprise document extraction at scale.
+
+## Core Concepts
+
+### Unified Orchestration
+TrueParser acts as a product surface for diverse technical formats. You don't need to implement individual library logic for spatial data, engineering drawings, or SQL dialects. The platform handles the intake, identifies the document type, and routes it to the optimal engine.
+
+### Streaming-First Philosophy
+Built for high-performance and low memory overhead, the engine is "stream-in, stream-out."
+- **Input**: Documents are received as byte streams.
+- **Output**: Results are emitted as NDJSON (Newline Delimited JSON) streams.
+
+This design allows TrueParser to process multi-gigabyte archives and complex documents without full-document buffering, making it suitable for high-volume forensics and enterprise ingestion.
+
+### Asynchronous Execution
+Document parsing is an asynchronous process. When you submit a document, the system accepts the job and engine processing ensures the final result is persisted for retrieval once the job is complete.
+
+## How it Works
+
+1. **Intake**: You submit a document via the Parsing API.
+2. **Identification**: The system detects the format or follows your explicit routing instructions.
+3. **Processing**: Specialized worker pipelines consume the document and generate structured data.
+4. **Materialization**: The engine's raw output is transformed into a canonical JSON representation.
+5. **Persistence**: The final artifact is stored in tenant-scoped S3-compatible storage for retrieval.
+
+Through this flow, TrueParser transforms diverse, messy technical documents into clean, queryable, and structured data for your downstream pipelines.
