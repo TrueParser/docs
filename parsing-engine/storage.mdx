@@ -1,17 +1,24 @@
 ---
 title: "Result Persistence"
-description: "Managing document storage, paths, and retention."
+description: "Managing document storage and retention."
 ---
 
 ## Result Persistence
 
-TrueParser provides reliable persistence for your parsed results, ensuring that structured data is available for retrieval by your downstream applications.
+TrueParser provides reliable persistence for your parsed results, ensuring that structured data is available for retrieval by your applications.
 
-### Tenant-Scoped S3 Storage
+### Tenant-Scoped Storage
 
 TrueParser stores all raw uploads and final parsed artifacts in secure, tenant-isolated buckets. By default, the platform provides managed storage, but for production workloads, you can configure your own **S3-compatible storage backend** in the dashboard.
 
-This allows you to maintain full ownership and governance of your data once the internal parsing lifecycle is complete.
+#### The Proxy Access Model
+Even when using your own storage, **TrueParser remains the sole client for result access.** This design ensures a consistent, secure, and stable integration contract:
+
+1. **Server-Side Management**: TrueParser uses your provided S3 credentials server-side to write and read artifacts on your behalf.
+2. **No Direct Access**: Clients never receive direct S3 URLs, bucket names, or presigned objects. This allows the platform to manage authorization, retention, and scaling without impacting your code.
+3. **API Stability**: All result retrieval happens through the TrueParser API, decoupling your application from the underlying storage infrastructure.
+
+---
 
 ## Retention Policy
 
@@ -29,6 +36,8 @@ Short-lived retention allows TrueParser to remain a stateless, high-performance 
 2. Polls for completion.
 3. Downloads the structured JSON.
 4. Persists the result into your own specialized storage or database.
+
+---
 
 ## Document Identifiers & Overwrites
 

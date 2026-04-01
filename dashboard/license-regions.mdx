@@ -1,17 +1,19 @@
 ---
 title: "License Regions"
-description: "Why and how to choose the right License Region for your application."
+description: "How to choose the correct License Region for your application."
 ---
 
 During the creation of your App, you must select a **License Region**. This is one of the most important architectural decisions for your project.
 
-A License Region is a specific geographic area (e.g., `aws-us-east-1`, `aws-eu-west-1`) where TrueParser maintains a dedicated **Dashboard** presence and data storage cluster. In your JWT, this is identified by the **`dbCode`** claim.
+A License Region is a specific geographic area (e.g., `aws-us-east-1`) where TrueParser maintains a dedicated presence and data storage cluster.
 
-### Why does it matter?
+---
 
-1.  **Data Residency**: All metadata associated with your App—including billing logs, plan limits, and the **internal session routing table**—is stored in a regional database (`RegionDatabase`) within that specific geography.
-2.  **Latency**: For the best performance, you should select the region closest to your primary user base. This minimizes the "handshake time" when your backend requests tokens from the **Dashboard**.
-3.  **Regulatory Compliance**: If your project must adhere to data sovereignty laws (like GDPR in Europe), selecting the correct License Region ensures your data (metadata and usage info) never leaves that geographic boundary.
+### Why Does It Matter?
+
+1.  **Data Residency**: All metadata associated with your App—including billing logs, plan limits, and routing info—is stored in isolated infrastructure within that specific geography.
+2.  **Latency**: For the best performance, you should select the region closest to your primary user base. This minimizes response times when your backend requests security tokens from the dashboard.
+3.  **Regulatory Compliance**: If your project must adhere to data sovereignty laws (like GDPR in Europe), selecting the correct License Region ensures your management data never leaves that geographic boundary.
 
 ---
 
@@ -26,12 +28,11 @@ A License Region is a specific geographic area (e.g., `aws-us-east-1`, `aws-eu-w
 | `aws-us-east-2`      | US East (Ohio)        |
 | `aws-us-west-2`      | US West (Oregon)      |
 
-### Can I change my region?
+### Can I Change My Region?
 
 <Warning>
   **The License Region is a "set-once" property.** Because your App's data is
-  physically provisioned in a regional database shard, it cannot be migrated to
-  another region after the App is created.
+  physically provisioned in regional storage, it cannot be migrated to another region after the App is created.
 </Warning>
 
 If you need to change regions, you must create a new App and migrate your user traffic to the new credentials.

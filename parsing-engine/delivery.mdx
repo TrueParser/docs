@@ -5,6 +5,8 @@ description: "How to poll for status and retrieve final parsed results."
 
 Once a document is ingested, it moves through the async parsing process. To retrieve the result, your application follows a standard Polling and Retrieval pattern.
 
+---
+
 ## Status Polling
 
 You can check the progress of a parse job using the `GET /api/v1/documents/{documentId}/status` endpoint.
@@ -13,29 +15,37 @@ The status response includes the current lifecycle state:
 - `Queued`: The job is waiting to be processed.
 - `Processing`: The engine is actively parsing the document.
 - `Completed`: The result has been materialized and is ready for download.
-- `Failed`: An error occurred during extraction (detailed error codes are included).
+- `Failed`: An error occurred during extraction.
+
+---
 
 ## Retrieving Results
 
-The final artifact is retrieved via `GET /api/v1/documents/{documentId}/result`.
+The final, materialized artifact is retrieved via `GET /api/v1/documents/{documentId}/result`.
 
-### Retrieval Behavior
-- **While Processing**: Returns a `202 Accepted` status, indicating the result is not yet ready.
-- **On Success**: Streams the final JSON or NDJSON artifact directly from storage.
-- **On Failure**: Returns a `422 Unprocessable Entity` error with details on the parse failure.
+### Retrieval Flow
+1. **Submit**: Documents are accepted and queued for processing via the ingestion endpoint.
+2. **Poll**: Your application polls the status endpoint until the state reaches **Completed**.
+3. **Fetch**: Call the result endpoint to receive the final structured data.
+
+### Platform Boundary
+To ensure security and stability, **TrueParser proxies all result access.** Your application interacts only with the platform's REST endpoints and never connects directly to the underlying S3-compatible storage. This allows us to manage per-request authorization and regional routing transparently.
+
+---
 
 ## Output Formats
 
-TrueParser delivers structured data in two standard formats, depending on your needs.
+TrueParser delivers structured data in two standard formats, optimized for different consumption patterns.
 
-### 1. NDJSON (Default Streaming)
-Newline Delimited JSON is the native output of the TrueParser engines. Each line is a standalone JSON object representing a record (e.g., a PDF block, a CAD entity, or a GIS feature).
-- **Best For**: Large-scale processing, streaming ingestion into databases, and memory-efficient consumption.
+### 1. JSON Document (Primary)
+The standard and recommended format for most applications. TrueParser materializes the parsed data into a final, valid JSON artifact.
+- **Best For**: Web applications, mobile clients, and standard data processing pipelines.
 
-### 2. JSON Array (Convenience)
-If you prefer a single materialized document, TrueParser can wrap the records into a standard JSON array.
-- **Best For**: Small to medium-sized documents, manual inspection, and standard JSON parsers.
-- **How to request**: Use the `.json` extension in the result request or set the `TRUEPARSER_OUTPUT_FORMAT=json` header.
+### 2. NDJSON (Streaming Analysis)
+Newline Delimited JSON is available for high-throughput, record-by-record analysis.
+- **Best For**: Large-scale data ingestion into high-performance analytical databases.
+
+---
 
 ## Schema Versioning
 Every result artifact includes a `schema_version` and `document_format` marker. These contracts are stable within a major version, ensuring your downstream logic remains robust even as underlying parser engines are updated.

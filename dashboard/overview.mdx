@@ -9,7 +9,7 @@ The Dashboard is responsible for the management, security, and regional orchestr
 
 ---
 
-## Core elements
+## Core Elements
 
 The Dashboard manages four primary entities.
 
@@ -18,57 +18,56 @@ The Dashboard manages four primary entities.
 A **Tenant** represents your organization or root account.
 
 - Top-level container for resources, billing, and team members.
-- Each tenant has its own unique signing keys for JWT issuance, ensuring cryptographic isolation from other organizations.
+- Each tenant is securely isolated from other organizations.
 
 ### 2. Apps
 
 Within a tenant, you can create multiple **Apps**. Each app represents a specific product or environment.
 
 - **Identity**: Each app holds its own unique `client_id` and `client_secret`.
-- **Data residency**: Every app is pinned to a **License Region** during creation.
-- **Data isolation**: Document metadata is stored in isolated, regional database shards.
+- **Data Residency**: Every app is pinned to a **License Region** during creation.
+- **Data Isolation**: Document metadata is stored in isolated, regional infrastructure.
 
 ### 3. Plans
 
 A **Plan** defines the performance characteristics and usage limits for an app.
 
-- **Limits**: Controls maximum concurrent connections, document counts, and operations per minute.
-- **The one free rule**: Each tenant is limited to exactly one application on a Free Plan.
+- **Limits**: Controls maximum page counts, document sizes, and operations per minute.
 - **Flexibility**: Plans can be upgraded or downgraded through the dashboard.
 
-### 4. Nodes
+### 4. Infrastructure
 
-TrueParser maintains a **Global Registry** for its physical infrastructure to ensure high availability and intelligent routing.
+TrueParser maintains a global parsing network to ensure high availability and intelligent routing.
 
-- **Security**: Manage JWT signing keys and allowed domains for secure ingestion.
-- **Node management**: We manage a global fleet of parsing nodes to ensure low-latency ingestion.
-- **Storage**: Configure tenant-isolated storage for persistent results.
+- **Security**: Manage allowed domains for secure ingestion.
+- **Performance**: We manage a global fleet of parsing nodes to ensure low-latency ingestion.
+- **Storage**: Configure tenant-isolated storage for persistence.
 
 ---
 
-## Security model
+## Security Model
 
 Your App's security is defined by **Allowed Domains**.
 
-- **Domain isolation**: Each app supports up to 3 domains (e.g., `app.example.com`, `localhost:3000`).
-- **Edge validation**: Parsing nodes check the `Origin` header of every incoming request against these claims. If they do not match, the request is rejected instantly.
+- **Domain Isolation**: Each app supports up to 3 domains (e.g., `app.example.com`, `localhost:3000`).
+- **Edge Validation**: Parsing nodes check the `Origin` header of every incoming request. If they do not match, the request is rejected instantly.
 
 ---
 
-## The token lifecycle
+## The Token Lifecycle
 
-TrueParser uses standard OAuth 2 flows for account management and synchronization.
+TrueParser uses standard OAuth 2 flows for account management and orchestration.
 
-- **Machine-to-machine**: Your backend server exchanges app credentials for a token, which is then passed to collaborative clients.
-- **Resource owner password**: For interactive dashboard access using trusted identifiers.
+- **Machine-to-machine**: Your backend server exchanges app credentials for a token, which is then passed to your client applications.
+- **Administrative Access**: For interactive dashboard access using trusted identifiers.
 
-### Best practice: token rotation
+### Best Practice: Token Rotation
 
 We support refresh tokens to minimize the exposure of your sensitive credentials.
 
-1. **Access token**: Short-lived. Used by your clients to connect.
-2. **Refresh token**: Long-lived. Used by your backend to request new access tokens without needing to re-send the `client_secret`.
+1. **Access Token**: Short-lived. Used by your clients to connect.
+2. **Refresh Token**: Long-lived. Used by your backend to request new access tokens without needing to re-send the `client_secret`.
 
-<Info>
-  Pro tip: Your authentication service should fetch the `client_secret` once during a cold start to obtain a token pair, then use the refresh token for all subsequent rotations. This allows you to purge the sensitive secret from active memory.
-</Info>
+<Note>
+  Your authentication service should fetch the `client_secret` once during a cold start to obtain a token pair, then use the refresh token for all subsequent rotations. This allows you to purge the sensitive secret from active memory.
+</Note>
