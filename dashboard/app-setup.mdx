@@ -17,7 +17,7 @@ Every app in TrueParser should be linked to a plan to be functional.
 3. **Capture Credentials**: Once created, you will see your `client_id` and `client_secret`. Copy them immediately.
 
 <Warning>
-  **The License Region is fixed at creation.** It cannot be changed later because your data is physically provisioned in that region's database shard.
+  **The License Region is fixed at creation.** App creation requires an **Active Database Shard** for that region. If no active database is available, creation will fail.
 </Warning>
 
 ---
@@ -28,7 +28,7 @@ You can find your credentials in the **Apps** section of the dashboard:
 
 1. Click on your app's name.
 2. In the **Overview** tab, you will find your `client_id`.
-3. The `client_secret` is visible only during initial creation. If you didn't save it, you must click **Regenerate Secret**.
+3. The `client_secret` is visible in plaintext only during initial creation or after a regeneration.
 
 ---
 
@@ -36,7 +36,7 @@ You can find your credentials in the **Apps** section of the dashboard:
 
 We recommend a "use-once" architectural pattern for your `client_secret`. This minimizes the risk of secret exposure.
 
-Instead of your authentication service reading the `client_secret` from a database for every token request, follow this flow:
+Instead of your auth service reading the `client_secret` from a database for every token request, follow this flow:
 
 1. **Cold Start**: Your auth service starts and retrieves the `client_secret` from a secure vault.
 2. **Bootstrap**: Call the token endpoint with the secret to get an initial access token plus refresh token.

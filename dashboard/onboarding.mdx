@@ -1,48 +1,47 @@
 ---
 title: "Onboarding"
-description: "Get your account ready for production in three simple steps."
+description: "Set up your tenant and create your first TrueParser application based on the current codebase behavior."
 ---
 
-Welcome to TrueParser. This guide walks you through setting up your account and preparing your first application for document parsing.
-
----
-
-## 1. Create a Tenant Account
-
-Every organization starts by creating a Tenant account. This serves as the administrative hub for your collaborative ecosystem.
-
-- Go to [dashboard.trueparser.com](https://dashboard.trueparser.com).
-- Sign up using your email or GitHub account.
-- **Initial State**: Your account will start in a **Pending** state while we complete the initial setup.
+TrueParser uses a tenant-isolated orchestration model. This guide reflects the actual onboarding workflow as implemented in the platform.
 
 ---
 
-## 2. Account Approval & Activation
+## 1. Create Your Tenant Account
 
-To ensure security and proper resource allocation, each new Tenant requires a one-time approval from the TrueParser team.
+Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Verification**: Our team reviews your registration.
-- **Provisioning**: Upon approval, the system generates your unique **Asymmetric Signing Keys** and prepares your billing profile.
-- You will receive an email once your account is **Active**.
+- **Authentication**: The current setup supports **Email and Password** sign-in only. Social providers (Google/GitHub) are not supported.
+- **Initial State**: New tenant registrations start in a **Pending Activation** state.
+- **Welcome Email**: A welcome email is queued immediately upon registration to confirm your account is in our queue.
 
 ---
 
-## 3. Set Up Your First App
+## 2. Wait for Tenant Activation
 
-An App contains the configuration and credentials your backend uses to authenticate users and connect to TrueParser.
+To maintain platform stability, new tenants require a one-time activation.
+
+- **Status Change**: Activation is handled as a separate administrative step.
+- **Activation Email**: When your tenant is activated, you will receive an automated email with your login details and the platform URL: `https://dashboard.trueparser.com`.
+
+---
+
+## 3. Create Your First App
+
+An App contains the configuration and credentials your backend uses to authenticate and connect to TrueParser.
 
 <Steps>
   <Step title="Create Application">
     Click on **Apps** in the sidebar and select **Add Application**.
   </Step>
   <Step title="Region & Data Residency">
-    Provide a name (e.g., `production-editor`) and select your **License
-    Region**. TrueParser automatically provisions a regional database to store
-    your app's metadata.
+    Provide a name (e.g., `production-parser`) and select your **License
+    Region**. TrueParser automatically handles the regional isolation for your
+    app's metadata.
   </Step>
   <Step title="Security Configuration">
     In the app settings, add your **Allowed Domains** (e.g., `localhost:3000`,
-    `myapp.com`). This is a critical security step that prevents token theft.
+    `myapp.com`). This is a critical security step that protects your application **usage quota** and prevents token theft.
   </Step>
   <Step title="Capture Credentials">
     Once created, you will see your `client_id` and `client_secret`. **Copy them
@@ -53,3 +52,59 @@ An App contains the configuration and credentials your backend uses to authentic
     </Warning>
   </Step>
 </Steps>
+
+---
+
+## 4. Choose a License Region
+
+Selecting a **License Region** is a mandatory step during application creation.
+
+- **Database Stamping**: The system resolves your chosen region to a physical **License Region** record.
+- **Active Shard Requirement**: App creation requires an active database shard for that region. If no active database is available, creation will fail.
+- **Technical Identifier**: The resolved database code is stamped onto your application. You will see this identifier (`dbCode`) in your issued access tokens.
+
+---
+
+## 5. Configure Allowed Domains
+
+Allowed domains are stored as security metadata to prevent unauthorized third-party cross-origin requests.
+
+- **Normalization**: The platform automatically cleans your domain entries:
+  - `http://` and `https://` prefixes are stripped.
+  - Trailing slashes are removed.
+- **Validation**:
+  - Duplicate domains are rejected.
+  - Wildcards (`*`) are not supported.
+  - `localhost` is permitted (with optional port).
+- **Capacity**: You can configure up to three unique domains.
+
+---
+
+## 6. Understand Token Issuance
+
+A tenant application can issue security tokens only when the platform's safety criteria are met:
+1. The App must be **Enabled**.
+2. The Tenant must be **Active**.
+3. The App must have a **License Region** and **Database Code** assigned.
+
+<Note>
+  **Plan Behavior.** An app can still issue a token even if no plan is assigned. In this case, the token will lack a `limits` claim. However, if a plan is assigned and that plan is **Retired**, token issuance is blocked entirely.
+</Note>
+
+---
+
+## 7. Manage Secrets Safely
+
+You must store your application's `client_secret` securely.
+
+- **Regeneration**: If a secret is lost or compromised, you must use the **Regenerate client_secret** flow in the dashboard.
+- **Instant Invalidation**: Regenerating a secret issues a new one immediately and invalidates the old one. Any services using the previous secret will lose access until updated.
+
+---
+
+## 8. Assigning a Plan
+
+Plans determine the usage quotas injected into your tokens.
+
+- **The One Free Rule**: Each tenant account is limited to exactly **one** application on a Free plan.
+- **Scaling**: Paid plans use our integrated billing flow and affect the `limits` claim in your issued tokens.

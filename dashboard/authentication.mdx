@@ -68,7 +68,7 @@ The access token is a signed JWT containing your application's identity and reso
   "licenseRegionCode": "aws-us-east-1",
   "allowedEngines": ["PDF", "GIS", "CAD", "SQL"],
   "limits": {
-    "maxPagesPerMonth": 5000,
+    "maxUnitsPerMonth": 5000,
     "maxDocumentSizeMb": 100,
     "requestsPerMinute": 60
   },
@@ -83,10 +83,21 @@ The access token is a signed JWT containing your application's identity and reso
 | `tenantid` | Your unique organization identifier for multi-tenant isolation. |
 | `appId` | The identifier for the specific application within your account. |
 | `allowedEngines` | List of parser types enabled for this application. |
-| `limits` | Object containing your plan-specific resource caps. |
+| `limits` | Object containing your plan-specific usage quotas (measured in **Document Units**). |
+
+### What is a Document Unit?
+
+To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric:
+
+| Parsing Engine | 1 Unit is defined as... |
+| :--- | :--- |
+| **Enterprise (PDF/Office)** | 1 Page |
+| **Messaging (PST/OST/EML/MSG)** | 1 Message |
+| **Database (SQL)** | 1 Statement |
+| **Geospatial (GIS/CAD)** | 1 File |
 
 <Note>
-  If no plan is assigned, the token will be issued successfully but will not include your usage limits, making it unusable for parsing. If a **Retired** plan is assigned, the dashboard will reject the token request.
+  If no plan is assigned, the token will be issued successfully but will not include your usage limits, making it unusable for parsing. If a **Retired** plan is assigned, token issuance is blocked by the system.
 </Note>
 
 ---

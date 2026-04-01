@@ -7,7 +7,8 @@ description: "Sign up, create your app, and parse your first document in minutes
 
 Create your TrueParser account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-Your account is free. No credit card is required to get started.
+- **Authentication**: TrueParser currently supports **Email and Password** sign-in.
+- **Initial State**: Your account will start in a **Pending Activation** state while our team processes your registration. You will receive an email once your account is active.
 
 ---
 
@@ -26,7 +27,7 @@ To connect to TrueParser, you need a security token. Tokens are issued through a
     Choose the geographic region closest to your primary data region (e.g., `aws-us-east-1`).
   </Step>
   <Step title="Save your credentials">
-    Immediately copy your **Client ID** and **Client Secret**. The secret is shown only once.
+    Immediately copy your **Client ID** and **Client Secret**. The secret is shown in plaintext only at this step.
   </Step>
 </Steps>
 
@@ -34,7 +35,7 @@ To connect to TrueParser, you need a security token. Tokens are issued through a
 
 ## 3. Recommended: Activate a Plan
 
-To parse documents, your app needs the usage limits provided by a plan. While you can obtain a token without a plan, it will be rejected by the system as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
+To parse technical documents, your app needs the **usage quota** provided by a plan. While you can obtain a token without a plan, it will be rejected by the system as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
 
 <Warning>
   **Plan Status.** If your app is assigned a plan that has been **Retired**, the dashboard will reject your request for an access token entirely. Always ensure your app is linked to an **Active** or **Archived** plan.
@@ -55,16 +56,6 @@ curl -X POST https://api.trueparser.com/connect/token \
   -d "scope=TrueParser.API offline_access"
 ```
 
-**Response:**
-
-```json
-{
-  "access_token": "eyJ...",
-  "token_type": "Bearer",
-  "expires_in": 900
-}
-```
-
 ---
 
 ## 5. Parse a Document
@@ -75,16 +66,7 @@ Submit your first document for parsing using the `POST /api/v1/documents/parse` 
 curl -X POST https://api.trueparser.com/api/v1/documents/parse \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -F "file=@/path/to/document.pdf" \
-  -F "documentType=PDF"
-```
-
-**Response (202 Accepted):**
-
-```json
-{
-  "documentId": "7b1c0d8c-...",
-  "status": "Queued"
-}
+  -F "documentType=Pdf"
 ```
 
 ---
@@ -100,6 +82,6 @@ curl -X GET https://api.trueparser.com/api/v1/documents/7b1c0d8c-.../result \
 
 <CardGroup cols={1}>
   <Card title="Learn about Result Delivery" icon="file-export" href="/parsing-engine/delivery">
-    Understand NDJSON vs. JSON formats and how high-volume streaming works.
+    Understand the materialized JSON output and how to fetch your data.
   </Card>
 </CardGroup>

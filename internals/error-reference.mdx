@@ -1,31 +1,30 @@
 ---
 title: "Error Reference"
-description: "Complete reference for Parsing Engine specific error codes and Dashboard API errors."
+description: "Complete reference for Parsing Engine and Dashboard API errors."
 ---
 
-## Ingestion Error Codes
+## Dashboard API Errors
 
-TrueParser uses the `4000-4999` private use range to provide specific, actionable feedback to your client on every failed connection.
-## Dashboard API errors
-
-Errors returned by `api.trueparser.com` for token and management API requests.
+Errors returned by `dashboard.trueparser.com` for token and management requests.
 
 | Code | Description | What to do |
 | --- | --- | --- |
-| `400 Bad Request` | Missing or malformed request parameters | Check required fields such as `grant_type`, `client_id`, and `documentName`. Do not retry automatically. |
-| `401 Unauthorized` | API key or token is missing or invalid | Verify your `client_id` and `client_secret`. Re-authenticate if needed. |
-| `403 Forbidden` | Your account lacks permission for this operation | Check your plan supports this feature. Contact support if unexpected. |
-| `429 Too Many Requests` | Dashboard management API rate limit hit | Back off and retry with exponential backoff. Do not hammer the endpoint. |
-| `503 Service Unavailable` | Dashboard is under maintenance | Reconnect with a cached JWT after the dashboard returns. Monitor [status.trueparser.com](https://status.trueparser.com) for updates. |
+| `400 Bad Request` | Missing or malformed parameters | Check required fields such as `grant_type`, `client_id`, or `documentType`. |
+| `401 Unauthorized` | Credentials are missing or invalid | Verify your `client_id` and `client_secret`. |
+| `403 Forbidden` | Permission denied | Check your plan status. Retired plans block access. |
+| `429 Too Many Requests` | Rate limit exceeded | Implement exponential backoff. |
+| `503 Service Unavailable` | Service maintenance | Monitor [status.trueparser.com](https://status.trueparser.com) for updates. |
 
 ---
 
-## HTTP errors
+## Parsing Engine Errors
 
-Errors returned by `ws.trueparser.com` for HTTP requests including the Discovery API.
+Errors returned by the API during document ingestion and result retrieval.
 
 | Code | Description | What to do |
-| --- | --- | --- |
-| `400 Bad Request` | Missing `documentName` parameter | Ensure `documentName` is included in the query string. |
-| `401 Unauthorized` | JWT is missing or invalid | Re-authenticate and retry with a fresh token. |
-| `503 Service Unavailable` | Node is degraded or overloaded | Retry with backoff using the `Retry-After` header value. |
+| :--- | :--- | :--- |
+| `400 Bad Request` | Invalid document or parameters | Ensure `documentType` and file content match. |
+| `413 Payload Too Large` | Document exceeds size limit | Check your plan's `maxInputBytesPerDocument`. |
+| `422 Unprocessable` | Extraction failed | The engine encountered an unrecoverable error during parsing. |
+| `429 Too Many Requests` | Usage quota exceeded | Total **Document Units** processed for the period has reached your plan limit. |
+| `503 Service Unavailable` | Node is overloaded | Retry with backoff using the `Retry-After` header value. |

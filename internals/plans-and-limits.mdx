@@ -1,58 +1,57 @@
 ---
 title: "Plans and Limits"
-description: "How TrueParser enforces plan limits and what your application receives when limits are hit."
+description: "How TrueParser enforces usage quotas and metrics for its diverse parsing engines."
 ---
 
-Every TrueParser application has resource limits defined by its plan. These limits are embedded in your JWT and enforced at connection time - no database lookup required.
-
-<Info>
-
-### Enforcement strategy
-
-**Global limits** - `maxConnections`, `maxDocuments`, and `maxUsersPerDoc` are enforced globally across the entire cluster. A tenant cannot bypass limits by spreading connections across multiple nodes.
-
-**Regional limits** - `opsPerMinute` is enforced via local Redis within the node's region. This allows millisecond-level rate checking without global database latency.
+Every TrueParser application has usage quotas defined by its plan. These metrics are embedded in your security token and enforced at runtime.
 
 ---
 
-## Handling limit errors
+## What is a Document Unit?
 
-```js
-provider.ws.addEventListener("close", (event) => {
-  switch (event.code) {
-    case 4004:
-      showUpgradePrompt("connection limit")
-      break
-    case 4005:
-      showUpgradePrompt("document limit")
-      break
-    case 4008:
-      showError("This document is full. Maximum collaborators reached.")
-      break
-    case 4006:
-      setTimeout(() => reconnect(nodeUrl, docId, token), 30000)
-      break
-  }
-})
+To provide a unified pricing and limit model across diverse technical formats, TrueParser uses a generalized **Document Unit** metric:
+
+| Parsing Engine | 1 Unit is defined as... |
+| :--- | :--- |
+| **Enterprise (PDF/Office)** | 1 Page |
+| **Messaging (PST/OST/EML/MSG)** | 1 Message |
+| **Database (SQL)** | 1 Statement |
+| **Geospatial (GIS/CAD)** | 1 File |
+
+---
+
+## Enforcement Strategy
+
+### Global Quotas
+**Document Units** and **Binary Storage Sizes** are enforced globally across the entire region. A tenant cannot bypass these quotas by spreading requests across multiple nodes.
+
+### Local Rate Limits
+**Requests Per Minute** is enforced via local rate-limiters within each node. This allows for millisecond-level verification without incurring global database latency.
+
+---
+
+## Handling Quota Errors
+
+When your application reaches a plan limit, the API returns a structured error response:
+
+```json
+{
+  "error": "quota_exceeded",
+  "message": "Document unit quota limit reached for the current billing window."
+}
 ```
 
 ---
 
-## Usage visibility
+## Usage Visibility
 
-TrueParser does not provide usage metrics in the dashboard. Since usage is ephemeral and real time, a static dashboard view would be outdated the moment it loaded. Instead, tenants can query the Usage API directly using their JWT to get a live snapshot of current consumption.
+The TrueParser Dashboard provides a high-level view of your consumption. For real-time infrastructure metrics, you can query the Usage API directly using your security token.
 
 ### Usage API
 
 ```http
-GET https://ws.trueparser.com/usage
+GET https://api.trueparser.com/usage
 Authorization: Bearer YOUR_ACCESS_TOKEN
-```
-
-Or using a query parameter:
-
-```http
-GET https://ws.trueparser.com/usage?token=YOUR_ACCESS_TOKEN
 ```
 
 **Response:**
@@ -62,17 +61,11 @@ GET https://ws.trueparser.com/usage?token=YOUR_ACCESS_TOKEN
   "tenantId": "550e8400-e29b-41d4-a716-446655440000",
   "appId": "770k8400-f29b-41d4-b716-556655449999",
   "usage": {
-    "connections": {
-      "current": 82,
-      "limit": 100,
-      "percent": 82.0,
+    "units": {
+      "current": 4200,
+      "limit": 5000,
+      "percent": 84.0,
       "status": "warning"
-    },
-    "documents": {
-      "current": 4,
-      "limit": 20,
-      "percent": 20.0,
-      "status": "healthy"
     }
   },
   "timestamp": "2026-02-25T14:40:00.000Z"
@@ -80,21 +73,13 @@ GET https://ws.trueparser.com/usage?token=YOUR_ACCESS_TOKEN
 ```
 
 | Field | Description |
-| --- | --- |
-| Metric | Type | Description |
-| --- | --- | --- |
-| `usage.pages.current` | number | Total pages processed in the current month. |
-| `usage.requests.current` | number | Active API requests in the current window. |
-| `usage.bytes.current` | number | Total bytes processed in the current month. |
-| `status` | `healthy` below 75%, `warning` between 75-89%, `critical` at 90% or above |
-| `timestamp` | UTC time of the snapshot |
+| :--- | :--- |
+| `usage.units.current` | Total **Document Units** processed in the current billing period. |
+| `usage.requests.current` | Active API requests in the current rate-limit window. |
+| `usage.bytes.current` | Total bytes processed in the current month. |
+| `status` | `healthy` below 75%, `warning` between 75-89%, `critical` at 90% or above. |
+| `timestamp` | UTC time of the snapshot. |
 
-<Info>
-  The JWT identifies the tenant and application. Users can safely call this endpoint directly from the browser. They will only ever see their own application's data.
-</Info>
-
-### Recommended usage
-
-- Poll once per minute for admin dashboards
-- Use `percent` and `status` fields to drive progress bars or color-coded indicators
-- Trigger an upgrade prompt when `status` reaches `warning` to prevent users hitting hard limits in production
+<Tip>
+  Your security token identifies your tenant and application automatically. You can safely call this endpoint directly from your monitoring dashboards.
+</Tip>

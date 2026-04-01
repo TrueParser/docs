@@ -12,10 +12,10 @@ Once a document is ingested, it moves through the async parsing process. To retr
 You can check the progress of a parse job using the `GET /api/v1/documents/{documentId}/status` endpoint.
 
 The status response includes the current lifecycle state:
-- `Queued`: The job is waiting to be processed.
-- `Processing`: The engine is actively parsing the document.
-- `Completed`: The result has been materialized and is ready for download.
-- `Failed`: An error occurred during extraction.
+- `queued`: The job is waiting to be processed.
+- `processing`: The engine is actively parsing the document.
+- `completed`: The result has been materialized and is ready for download.
+- `failed`: An error occurred during extraction.
 
 ---
 
@@ -25,7 +25,7 @@ The final, materialized artifact is retrieved via `GET /api/v1/documents/{docume
 
 ### Retrieval Flow
 1. **Submit**: Documents are accepted and queued for processing via the ingestion endpoint.
-2. **Poll**: Your application polls the status endpoint until the state reaches **Completed**.
+2. **Poll**: Your application polls the status endpoint until the state reaches **completed**.
 3. **Fetch**: Call the result endpoint to receive the final structured data.
 
 ### Platform Boundary
