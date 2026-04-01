@@ -11,7 +11,7 @@ TrueParser uses a tenant-isolated orchestration model. This guide reflects the a
 
 Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Authentication**: The current setup supports **Email and Password** sign-in only. Social providers (Google/GitHub) are not supported.
+- **Authentication**: The current setup supports **Email and Password** sign-in for human administrators.
 - **Initial State**: New tenant registrations start in a **Pending Activation** state.
 - **Welcome Email**: A welcome email is queued immediately upon registration to confirm your account is in our queue.
 
@@ -22,13 +22,13 @@ Create your tenant account at [dashboard.trueparser.com](https://dashboard.truep
 To maintain platform stability, new tenants require a one-time activation.
 
 - **Status Change**: Activation is handled as a separate administrative step.
-- **Activation Email**: When your tenant is activated, you will receive an automated email with your login details and the platform URL: `https://dashboard.trueparser.com`.
+- **Activation Email**: When your tenant is activated, you will receive an automated email with your login details.
 
 ---
 
 ## 3. Create Your First App
 
-An App contains the configuration and credentials your backend uses to authenticate and connect to TrueParser.
+An App contains the configuration and credentials your backend uses to authenticate and connect to the TrueParser API.
 
 <Steps>
   <Step title="Create Application">
@@ -41,7 +41,7 @@ An App contains the configuration and credentials your backend uses to authentic
   </Step>
   <Step title="Security Configuration">
     In the app settings, add your **Allowed Domains** (e.g., `localhost:3000`,
-    `myapp.com`). This is a critical security step that protects your application **usage quota** and prevents token theft.
+    `myapp.com`). This is a critical security step that protects your application **usage quota**.
   </Step>
   <Step title="Capture Credentials">
     Once created, you will see your `client_id` and `client_secret`. **Copy them
@@ -69,26 +69,22 @@ Selecting a **License Region** is a mandatory step during application creation.
 
 Allowed domains are stored as security metadata to prevent unauthorized third-party cross-origin requests.
 
-- **Normalization**: The platform automatically cleans your domain entries:
-  - `http://` and `https://` prefixes are stripped.
-  - Trailing slashes are removed.
-- **Validation**:
-  - Duplicate domains are rejected.
-  - Wildcards (`*`) are not supported.
-  - `localhost` is permitted (with optional port).
+- **Normalization**: The platform automatically cleans your domain entries (stripping protocols and trailing slashes).
+- **Validation**: Wildcards (`*`) are not supported, but `localhost` (with port) is permitted.
 - **Capacity**: You can configure up to three unique domains.
 
 ---
 
 ## 6. Understand Token Issuance
 
-A tenant application can issue security tokens only when the platform's safety criteria are met:
+A tenant application can issue security tokens only when the platform's safety criteria are met. Unlike Dashboard access, API authentication uses the Identity Authority endpoint.
+
 1. The App must be **Enabled**.
 2. The Tenant must be **Active**.
 3. The App must have a **License Region** and **Database Code** assigned.
 
 <Note>
-  **Plan Behavior.** An app can still issue a token even if no plan is assigned. In this case, the token will lack a `limits` claim. However, if a plan is assigned and that plan is **Retired**, token issuance is blocked entirely.
+  **Plan Behavior.** An application can always issue a token. However, to receive the usage quotas (limits) required for the Parsing API, the application must be linked to an active plan in the dashboard.
 </Note>
 
 ---
@@ -106,5 +102,5 @@ You must store your application's `client_secret` securely.
 
 Plans determine the usage quotas injected into your tokens.
 
-- **The One Free Rule**: Each tenant account is limited to exactly **one** application on a Free plan.
+- **The One Free Rule**: Each organization is limited to exactly **one** application on a Free plan.
 - **Scaling**: Paid plans use our integrated billing flow and affect the `limits` claim in your issued tokens.

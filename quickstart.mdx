@@ -7,21 +7,21 @@ description: "Sign up, create your app, and parse your first document in minutes
 
 Create your TrueParser account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Authentication**: TrueParser currently supports **Email and Password** sign-in.
-- **Initial State**: Your account will start in a **Pending Activation** state while our team processes your registration. You will receive an email once your account is active.
+- **Authentication**: TrueParser Dashboard uses **Email and Password** sign-in to manage your account.
+- **Initial State**: New accounts start in a **Pending Activation** state. You will receive an automated email once your organization is active.
 
 ---
 
 ## 2. Create an App
 
-To connect to TrueParser, you need a security token. Tokens are issued through an OAuth 2 machine-to-machine flow. First, create an app in the dashboard to generate your credentials.
+To access the parsing engines, you need a security token. Tokens are issued to **Applications** through an OAuth 2 machine-to-machine flow. Create an app in the dashboard to generate your credentials.
 
 <Steps>
   <Step title="Open the Apps section">
     Navigate to **Apps** in the dashboard sidebar and click **Add Application**.
   </Step>
   <Step title="Name your app">
-    Identify the service connecting to TrueParser, for example `my-legal-analyzer-prod`.
+    Identify the service connecting to TrueParser, for example `my-document-parser`.
   </Step>
   <Step title="Set the License Region">
     Choose the geographic region closest to your primary data region (e.g., `aws-us-east-1`).
@@ -35,20 +35,20 @@ To connect to TrueParser, you need a security token. Tokens are issued through a
 
 ## 3. Recommended: Activate a Plan
 
-To parse technical documents, your app needs the **usage quota** provided by a plan. While you can obtain a token without a plan, it will be rejected by the system as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
+To parse technical documents, your application requires the **usage quota** provided by a plan. While you can obtain a token without a plan, it will be rejected by the parsing engine as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
 
-<Warning>
-  **Plan Status.** If your app is assigned a plan that has been **Retired**, the dashboard will reject your request for an access token entirely. Always ensure your app is linked to an **Active** or **Archived** plan.
-</Warning>
+<Tip>
+  **Quota Activation.** To enable parsing operations, you must select an available plan in the dashboard. This ensures your issued tokens contain the required usage quotas for your License Region.
+</Tip>
 
 ---
 
 ## 4. Get an Access Token
 
-Exchange your credentials for a security token using the OAuth 2 client credentials flow.
+Exchange your application credentials for a security token at the **Identity Authority**:
 
 ```bash
-curl -X POST https://api.trueparser.com/connect/token \
+curl -X POST https://admin-api.trueparser.com/connect/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=client_credentials" \
   -d "client_id=YOUR_CLIENT_ID" \
@@ -60,7 +60,7 @@ curl -X POST https://api.trueparser.com/connect/token \
 
 ## 5. Parse a Document
 
-Submit your first document for parsing using the `POST /api/v1/documents/parse` endpoint.
+Submit your first document for parsing using the **Parsing API**.
 
 ```bash
 curl -X POST https://api.trueparser.com/api/v1/documents/parse \
@@ -73,7 +73,7 @@ curl -X POST https://api.trueparser.com/api/v1/documents/parse \
 
 ## 6. Retrieve Results
 
-Once processing is complete, download your structured JSON results.
+Once processing is complete, download your structured JSON results from the **Parsing API**:
 
 ```bash
 curl -X GET https://api.trueparser.com/api/v1/documents/7b1c0d8c-.../result \
@@ -82,6 +82,6 @@ curl -X GET https://api.trueparser.com/api/v1/documents/7b1c0d8c-.../result \
 
 <CardGroup cols={1}>
   <Card title="Learn about Result Delivery" icon="file-export" href="/parsing-engine/delivery">
-    Understand the materialized JSON output and how to fetch your data.
+    Understand how results are materialized and fetched from the API.
   </Card>
 </CardGroup>
