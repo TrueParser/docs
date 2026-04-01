@@ -65,7 +65,12 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
 
 ## 5. Ingest a Document
 
-Submit a document for parsing. Note that specific formats like PDF require additional parameters like `pdfMode`.
+Submit a document for parsing. Some formats require additional routing parameters:
+
+- PDF requires `pdfMode`
+- SQL requires `sqlDialect`
+- CSV requires `csvRoute`
+- ZIP-based uploads should include an explicit `documentType`
 
 ```bash
 curl -X POST https://api.trueparser.com/api/v1/documents/parse \
@@ -81,7 +86,7 @@ The API returns a **202 Accepted** with a `documentId` for tracking.
 
 ## 6. Poll for Completion
 
-TrueParser is an **asynchronous** platform. Before fetching results, you must poll the status endpoint until the job is `completed`.
+TrueParser is an **asynchronous** platform. Before fetching results, poll the status endpoint until the job reaches `completed`.
 
 ```bash
 curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/status \
@@ -89,7 +94,7 @@ curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/status \
 ```
 
 **Response:**
-Wait for `"status": "completed"`. If the status is `failed`, check the `error` field for details.
+Wait for `"status": "completed"`. Typical status values include `queued`, `processing`, `completed`, and `failed`. If the status is `failed`, inspect the returned payload for error details.
 
 ---
 
@@ -107,6 +112,12 @@ curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/result \
   through the `/result` endpoint. Clients do **not** fetch results from S3 or
   external storage directly.
 </Note>
+
+<Tip>
+  If you call `/result` before processing is finished, the API can still return
+  `202 Accepted` with a processing status payload. Poll `/status` until the job
+  is complete, then fetch `/result`.
+</Tip>
 
 <CardGroup cols={1}>
   <Card
