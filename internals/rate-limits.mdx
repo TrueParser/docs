@@ -1,104 +1,88 @@
 ---
 title: "Rate Limits"
-description: "How TrueParser applies API request limits and Document Unit quota limits."
+description: "How TrueParser applies plan-based request limits and upload protections."
 ---
 
 ## Overview
 
-TrueParser applies two different kinds of limits:
+TrueParser applies plan-based limits to keep usage predictable and fair across a tenant.
 
-- API request-rate limits
-- Document Unit quota limits
+These limits are enforced across the tenant and apply to all apps attached to that tenant.
 
-These limits work together, but they protect different parts of the platform.
+Depending on your plan, limits can be applied over multiple windows:
 
-## API Request Limits
+- per minute
+- per day
+- per week
+- per month
 
-TrueParser enforces app-scoped request-rate limits for API traffic.
+The exact values depend on your plan.
 
-Current public behavior:
+## Request Limits
 
-- request limits apply per application
-- the current request-rate model is requests per minute
-- request-rate limits are separate from Document Unit quotas
-
-If your application exceeds the allowed request rate, the API returns `429 Too Many Requests`.
-
-Typical error response:
-
-```json
-{
-  "error": "rate_limit_exceeded",
-  "message": "API request rate limit exceeded."
-}
-```
-
-## Document Unit Quotas
-
-TrueParser also enforces quota windows for parsing consumption.
-
-These quotas apply to **Document Units**, which are the platform’s common measurement for countable parsing work.
-
-Document Unit quota windows currently include:
-
-- per document
-- hourly
-- daily
-- weekly
-- monthly
-
-If a parsing operation would exceed an allowed quota window, the job is rejected or failed under the current plan rules.
-
-## Document Units by Family
-
-Depending on parser family, one Document Unit means:
-
-| Family   | One Document Unit means          |
-| -------- | -------------------------------- |
-| PDF      | One page                         |
-| MsOffice | One page                         |
-| OpenDoc  | One page                         |
-| MailKit  | One top-level email/message item |
-| SQL      | One statement                    |
-| GIS      | One logical dataset              |
-| CAD      | One processed document           |
-
-## Byte Usage
-
-TrueParser also tracks accepted upload size in bytes.
-
-Byte usage is separate from both:
-
-- request-rate limits
-- Document Unit quotas
-
-This allows the platform to provide visibility into upload volume while still enforcing Document Units as the main parsing-consumption model.
-
-The platform also enforces a maximum upload size per document under your plan.
-
-## Which Endpoints Are Affected?
-
-The most important request-rate gate applies to document ingestion.
+TrueParser enforces request limits for API traffic.
 
 At a high level:
 
-- ingestion is rate-limited
-- parsing work is quota-limited through Document Units
-- overloaded nodes may also return `503 Service Unavailable`
+- request limits are enforced per tenant
+- limits are shared across all apps attached to the same tenant
+- exceeding a limit returns `429 Too Many Requests`
 
-TrueParser does not currently publish a separate public rate-limit table for every endpoint.
+## Upload Protections
 
-## What to Expect
+TrueParser also applies upload protections to keep large or bursty traffic from overwhelming the platform.
 
-If you exceed API traffic limits:
+These protections help balance:
 
-- expect `429 Too Many Requests`
+- concurrency
+- request bursts
+- upload bandwidth
 
-If you exceed Document Unit quota windows:
+At the product level, tenants are protected by caps on concurrent uploads, request rate, and upload bandwidth.
 
-- expect quota-related failures such as `quota_exceeded` or `document_quota_exceeded`
+We do not expose the internal enforcement details, but the platform uses these controls together with plan-based limits to keep upload behavior fair.
 
-If the platform is temporarily overloaded:
+## Upload Size Support
 
-- expect `503 Service Unavailable`
-- retry using backoff when appropriate
+The platform supports mixed upload sizes up to a maximum of `25 MB` per upload, subject to your plan.
+
+That means a tenant may upload:
+
+- `1 KB` files
+- `1 MB` files
+- `25 MB` files
+
+The request limits and upload protections work together so small uploads and large uploads are both handled fairly.
+
+## Plan-Based Usage Windows
+
+In addition to upload limits, TrueParser plans may include usage windows that reset over time.
+
+These windows may include:
+
+- per minute
+- per day
+- per week
+- per month
+
+The exact combination of windows depends on the plan you are on.
+
+## Recommended Baseline
+
+For a `25 MB` maximum upload size, a good starting point is:
+
+- plan-based limits set according to your tenant tier
+- upload protections enabled by default
+- maximum upload size of `25 MB`
+
+This gives enough headroom for mixed traffic while still keeping upload pressure under control.
+
+## Notes
+
+- Limits are tenant-scoped.
+- All apps for the same tenant share the same limits.
+- Tenant plans may include caps on concurrent uploads, request rate, and upload bandwidth.
+- The exact values can be tuned later as workloads change.
+- If a request exceeds a limit, the platform returns `429 Too Many Requests`.
+
+If the platform is temporarily overloaded, it may also return `503 Service Unavailable`, and you should retry with backoff when appropriate.
