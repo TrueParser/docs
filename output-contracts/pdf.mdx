@@ -1,0 +1,112 @@
+---
+title: "PDF"
+description: "Public result contract for PDF outputs."
+---
+
+# PDF
+
+Use this contract for PDF results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file` | Source file name. |
+| `format` | Always `pdf`. |
+| `format_family` | Always `pdf`. |
+| `title`, `author`, `subject`, `company` | Document metadata fields. |
+| `created_at`, `modified_at` | Timestamps when available. |
+| `page_count` | Page count when available. |
+| `source_mode` | Public extraction mode label. |
+| `source_engine` | Engine identity. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `page_number` | Page number. |
+| `order` | Deterministic order. |
+| `bbox` | Required bounding box. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `chunk_hint` | Present only when you request it. |
+| `text` | Searchable text projection. |
+| `attributes` | PDF-specific structured data. |
+
+Common record types include `paragraph`, `heading`, `list`, `table`, `image`, and `header_footer`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings human-readable.
+- Use warnings for client-facing notes, not for hidden parser behavior.
+
+## What clients can rely on
+
+- Page order stays stable.
+- Section structure stays explicit.
+- `bbox` and `source_ref` stay attached to each block.
+- `attributes` carries PDF-specific details.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "source_file": "policy.pdf",
+    "format": "pdf",
+    "format_family": "pdf",
+    "title": "Insurance Policy",
+    "page_count": 2,
+    "source_mode": "basic",
+    "source_engine": "TrueParserPdf.Basic"
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "p1-o1-paragraph",
+      "type": "heading",
+      "path": ["EXECUTIVE SUMMARY"],
+      "parent_id": null,
+      "depth": 1,
+      "page_number": 1,
+      "order": 1,
+      "bbox": { "x": 72, "y": 50, "width": 200, "height": 16 },
+      "source_ref": {
+        "page": 1,
+        "block_id": "p1-o1-paragraph",
+        "source_mode": "basic",
+        "source_engine": "TrueParserPdf.Basic"
+      },
+      "is_inferred": true,
+      "text": "EXECUTIVE SUMMARY",
+      "attributes": {
+        "level": 1
+      }
+    }
+  ]
+}
+```

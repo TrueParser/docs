@@ -97,6 +97,32 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Output Contracts",
+        "groups": [
+          {
+            "group": "Overview",
+            "icon": "file-lines",
+            "pages": [
+              "output-contracts/overview"
+            ]
+          },
+          {
+            "group": "Families",
+            "icon": "layer-group",
+            "pages": [
+              "output-contracts/cad",
+              "output-contracts/gis",
+              "output-contracts/mailkit",
+              "output-contracts/msoffice",
+              "output-contracts/opendoc",
+              "output-contracts/parquet",
+              "output-contracts/pdf",
+              "output-contracts/sql"
+            ]
+          }
+        ]
       }
     ],
     "global": {

@@ -1,0 +1,106 @@
+---
+title: "Parquet"
+description: "Public result contract for Parquet outputs."
+---
+
+# Parquet
+
+Use this contract for Parquet dataset results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file`, `document_name` | Source file and display name. |
+| `format` | Always `parquet`. |
+| `format_family` | Always `parquet_file`. |
+| `document_id`, `content_hash` | Optional stable identifiers. |
+| `is_partial` | Public completeness flag. |
+| `metadata` | Additive document metadata. |
+| `record_count`, `schema_node_count`, `leaf_column_count`, `row_group_count`, `row_record_count`, `column_chunk_count`, `statistics_count`, `key_value_metadata_count`, `semantic_tag_count`, `diagnostic_count` | Summary counts when available. |
+| `row_count`, `compressed_size`, `uncompressed_size`, `confidence`, `status`, `completeness` | Public summary values when available. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `order` | Deterministic order. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `warnings` | Record-local notes. |
+| `content_hash` | Optional hash. |
+| `text` | Searchable text projection. |
+| `attributes` | Parquet-specific structured data. |
+
+Common record types include `schema_node`, `column`, `row_group`, `row`, `column_chunk`, `statistics`, `key_value_metadata`, `semantic_tag`, and `diagnostic`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings human-readable.
+- Surface recoverable issues without changing the public shape.
+
+## What clients can rely on
+
+- Schema order stays stable.
+- Row-group and row order stay stable.
+- Raw metadata and summary values remain separate.
+- Additive fields do not break older clients.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "format": "parquet",
+    "format_family": "parquet_file",
+    "source_file": "orders.parquet",
+    "row_group_count": 1,
+    "record_count": 2,
+    "metadata": {}
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "schema_0001",
+      "type": "schema_node",
+      "order": 1,
+      "path": ["schema_node", "schema-order-id"],
+      "parent_id": null,
+      "depth": 0,
+      "source_ref": {
+        "record_id": "schema-order-id",
+        "record_type": "schema_node",
+        "source_file": "orders.parquet"
+      },
+      "is_inferred": false,
+      "warnings": [],
+      "text": "order.id",
+      "attributes": {}
+    }
+  ]
+}
+```

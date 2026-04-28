@@ -1,0 +1,113 @@
+---
+title: "MailKit"
+description: "Public result contract for mail and archive outputs."
+---
+
+# MailKit
+
+Use this contract for mail, message, and archive results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file`, `document_name` | Source file and display name. |
+| `format`, `format_family` | Format and family marker. |
+| `document_id`, `content_hash` | Stable retrieval and dedupe values when available. |
+| `mime_type` | MIME type when available. |
+| `title`, `author`, `subject`, `company` | Document metadata fields. |
+| `created_at`, `modified_at` | Timestamps when available. |
+| `is_partial` | Public completeness flag. |
+| `metadata` | Additive document metadata. |
+| `record_count`, `folder_count`, `message_count`, `item_count` | Summary counts when available. |
+| `options` | Effective public output options. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `order` | Deterministic order. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `page_number` | Present but usually `null`. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `warnings` | Record-local notes. |
+| `content_hash` | Optional hash. |
+| `text` | Searchable text projection. |
+| `attributes` | MailKit-specific structured data. |
+
+Common record types include `folder`, `mailbox`, `message`, `embedded_message`, `attachment`, `body_part`, `recipient`, `appointment`, `contact`, `task`, `distribution_list`, `participant`, `tnef_payload`, `smime_entity`, `signed_entity`, and `encrypted_entity`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings readable.
+- Do not use warnings instead of structured content.
+
+## What clients can rely on
+
+- Order stays deterministic.
+- Structural paths stay explicit.
+- Provenance stays attached when available.
+- Attachment bytes are not inlined in the public contract.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "format": "eml",
+    "format_family": "mime_message",
+    "document_name": "sample.eml",
+    "source_file": "sample.eml",
+    "is_partial": false,
+    "metadata": {},
+    "record_count": 2,
+    "options": {
+      "include_attachments": false,
+      "include_body_rtf": false
+    }
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "msg_0001",
+      "type": "message",
+      "order": 1,
+      "path": ["Inbox"],
+      "parent_id": null,
+      "depth": 0,
+      "page_number": null,
+      "source_ref": {
+        "message_id": "<abc@example.com>"
+      },
+      "is_inferred": false,
+      "warnings": [],
+      "text": "Hello",
+      "attributes": {}
+    }
+  ]
+}
+```

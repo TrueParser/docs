@@ -78,18 +78,27 @@ Finalizes a previously created upload session and enqueues parsing.
 Returns the current processing state of the job.
 
 #### Status Values
-- `queued`: Waiting in the orchestration queue.
-- `processing`: The engine is actively extracting data.
-- `materializing`: Parsed content is being materialized.
-- `waiting-for-provider` / `provider-processing`: Provider-backed extraction is running.
-- `completed`: Result is ready for retrieval.
-- `failed`: Extraction failed. See the `error` field in the response.
-- `job not yet queued`: Upload has not been accepted into queue state yet.
+
+`statusInt` is the numeric job-state code. `status` is the human-readable string returned by the API.
+
+| `statusInt` | `status` | Meaning |
+| :--- | :--- | :--- |
+| `0` | `job not yet queued` | Upload has not been accepted into queue state yet. |
+| `1` | `received` | The upload has been accepted, but queue admission has not completed yet. |
+| `2` | `queued` | Waiting in the orchestration queue. |
+| `3` | `processing` | The engine is actively extracting data. |
+| `4` | `materializing` | Parsed content is being materialized. |
+| `5` | `retrying` | The job is being retried after a transient failure. |
+| `6` | `waiting-for-provider` | The job is waiting for an external provider slot. |
+| `7` | `provider-processing` | Provider-backed extraction is running. |
+| `8` | `completed` | Result is ready for retrieval. |
+| `9` | `failed` | Extraction failed. See the `error` field in the response. |
 
 #### Response (200 OK)
 ```json
 {
   "status": "completed",
+  "statusInt": 8,
   "startedAt": "2024-03-20T10:00:00Z",
   "completedAt": "2024-03-20T10:00:05Z"
 }

@@ -1,0 +1,115 @@
+---
+title: "SQL"
+description: "Public result contract for SQL outputs."
+---
+
+# SQL
+
+Use this contract for SQL statement results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file`, `document_name` | Source file and display name. |
+| `format` | Always `sql`. |
+| `format_family` | Always `sql_script`. |
+| `document_id`, `content_hash` | Optional stable identifiers. |
+| `mime_type` | MIME type when available. |
+| `title`, `author`, `subject`, `company` | Cross-engine document metadata fields. |
+| `created_at`, `modified_at` | Timestamps when available. |
+| `is_partial` | Public completeness flag. |
+| `metadata` | Additive document metadata. |
+| `record_count`, `statement_count`, `successful_statement_count`, `failed_statement_count`, `read_statement_count`, `write_statement_count`, `define_statement_count`, `admin_statement_count`, `unknown_statement_count`, `relationship_count`, `lineage_edge_count`, `diagnostic_count`, `object_count` | Summary counts when available. |
+| `confidence`, `complexity_score`, `sensitivity_hit_count` | Public summary values when available. |
+| `status`, `completeness`, `dialect` | Public extraction state. |
+| `dialect_signals`, `object_registry`, `options` | Family-specific public metadata. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `order` | Deterministic order. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `page_number` | Always `null` for SQL. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `warnings` | Record-local notes. |
+| `content_hash` | Optional hash. |
+| `text` | Searchable text projection. |
+| `attributes` | SQL-specific structured data. |
+
+Common record types include `statement`, `entity`, `relationship`, `lineage_edge`, and `diagnostic`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings human-readable.
+- Preserve recoverable parsing notes without hiding them.
+
+## What clients can rely on
+
+- Statement order stays stable.
+- Entity, relationship, and lineage records stay distinct.
+- `dialect` and other summary values stay explicit.
+- `attributes` carries SQL-specific details.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "format": "sql",
+    "format_family": "sql_script",
+    "source_file": "script.sql",
+    "dialect": "PostgreSQL",
+    "statement_count": 1,
+    "record_count": 3,
+    "metadata": {}
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "stmt_0001",
+      "type": "statement",
+      "order": 1,
+      "path": ["statement:1"],
+      "parent_id": null,
+      "depth": 0,
+      "page_number": null,
+      "source_ref": {
+        "statement_id": "stmt-1",
+        "statement_index": 1,
+        "source_file": "script.sql",
+        "dialect": "PostgreSQL"
+      },
+      "is_inferred": false,
+      "warnings": [],
+      "text": "SELECT 1;",
+      "attributes": {}
+    }
+  ]
+}
+```

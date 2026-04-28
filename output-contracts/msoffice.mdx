@@ -1,0 +1,102 @@
+---
+title: "MsOffice"
+description: "Public result contract for Microsoft Office outputs."
+---
+
+# MsOffice
+
+Use this contract for Microsoft Office and web-text results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file` | Source file name. |
+| `format` | Concrete source format. |
+| `format_family` | One of `word`, `excel`, `powerpoint`, or `web_text`. |
+| `title`, `author`, `subject`, `company` | Document metadata fields. |
+| `created_at`, `modified_at` | Timestamps when available. |
+| `page_count`, `sheet_count`, `slide_count` | Family-specific summary counts. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `page_number` | Page, sheet, or slide reference when applicable. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `chunk_hint` | Present only when you request it. |
+| `text` | Searchable text projection. |
+| `attributes` | Office-specific structured data. |
+
+Common record types include `word_metadata`, `section`, `heading`, `paragraph`, `list`, `table`, `table_row`, `table_cell`, `image`, `header_footer`, `bookmark`, `footnote`, `endnote`, `toc`, `field`, `hyperlink`, `word_formula`, `word_chart`, `word_smartart`, and `page_break`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings readable.
+- Do not use warnings as a substitute for missing fields.
+
+## What clients can rely on
+
+- Order stays deterministic.
+- Structure stays explicit.
+- `attributes` holds family-specific details.
+- Optional fields may be omitted when they do not apply.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "source_file": "sample.docx",
+    "format": "docx",
+    "format_family": "word",
+    "title": "Insurance Policy",
+    "author": "Jane Smith",
+    "page_count": 4
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "blk_0001",
+      "type": "heading",
+      "path": ["Section 1"],
+      "parent_id": null,
+      "depth": 0,
+      "page_number": 1,
+      "source_ref": {
+        "page": 1
+      },
+      "is_inferred": false,
+      "text": "Coverage",
+      "attributes": {
+        "level": 1
+      }
+    }
+  ]
+}
+```

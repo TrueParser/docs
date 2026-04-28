@@ -1,0 +1,116 @@
+---
+title: "GIS"
+description: "Public result contract for geospatial outputs."
+---
+
+# GIS
+
+Use this contract for GIS and geospatial results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `format` | Normalized source format such as `SHP`, `GPKG`, or `GeoJSON`. |
+| `format_family` | Always `gis`. |
+| `document_format` | Public family marker. |
+| `source_file` | Source file name. |
+| `is_compressed` | Indicates compressed input. |
+| `feature_count_source` | Source count provenance. |
+| `source_feature_count` | Count reported by the source when available. |
+| `layer_count`, `feature_count` | Public summary counts. |
+| `warning_count`, `error_count`, `skipped_feature_count` | Public processing counts when available. |
+| `parse_timestamp` | Extraction time. |
+| `parser_name`, `parser_version` | Parser identity and version. |
+| `primary_crs` | Dataset CRS identity. |
+| `extents` | Dataset extents. |
+| `metadata` | Additive document metadata. |
+| `layers` | Layer collection. |
+| `diagnostics` | Public issue records. |
+
+## Universal content/block shape
+
+GIS feature records use a stable public record shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable feature id. |
+| `feature_id` | Source feature id when available. |
+| `layer_id` | Parent layer id. |
+| `layer` | Convenience layer name. |
+| `geometry_type` | Normalized geometry family. |
+| `coverage_state` | Completeness signal. |
+| `source_ref` | Provenance object. |
+| `resolved` | Convenience-only resolved values. |
+| `geometry` | Normalized geometry payload. |
+| `geometry_raw` | Source-adjacent geometry details. |
+| `bbox`, `centroid` | Spatial metadata in source coordinate space. |
+| `style` | Optional style metadata. |
+| `properties` | Required feature properties. |
+| `properties_raw` | Optional raw properties. |
+| `fidelity` | Validation and repair details. |
+| `metadata` | Additive feature metadata. |
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings short and human-readable.
+- Preserve recoverable issues without turning them into hidden behavior.
+
+## What clients can rely on
+
+- Layer order stays stable.
+- Feature order stays stable inside each layer.
+- CRS and geometry details stay explicit.
+- `properties` always remains present.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "format": "GPKG",
+    "format_family": "gis",
+    "source_file": "roads.gpkg",
+    "layer_count": 1,
+    "feature_count": 1,
+    "metadata": {},
+    "layers": [
+      {
+        "id": "layer-1",
+        "name": "roads",
+        "features": [
+          {
+            "id": "roads:101",
+            "layer_id": "layer-1",
+            "coverage_state": "supported",
+            "properties": {
+              "id": 101,
+              "name": "Main Road"
+            }
+          }
+        ]
+      }
+    ],
+    "diagnostics": []
+  },
+  "warnings": [],
+  "content": []
+}
+```

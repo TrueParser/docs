@@ -1,0 +1,73 @@
+---
+title: "Overview"
+description: "Public, client-facing result contracts for parsed outputs."
+---
+
+# Output Contracts
+
+This is the public, client-facing result contract for each family.
+
+Results are produced asynchronously.
+
+The API is the only supported retrieval path.
+
+The contract is family-specific, but the public shape is stable.
+
+Use the family page that matches the result you asked for.
+
+<CardGroup cols={2}>
+  <Card title="CAD" icon="drafting-compass" href="/output-contracts/cad">
+    Public JSON contract for CAD drawings.
+  </Card>
+  <Card title="GIS" icon="map" href="/output-contracts/gis">
+    Public JSON contract for geospatial outputs.
+  </Card>
+  <Card title="MailKit" icon="envelope" href="/output-contracts/mailkit">
+    Public JSON contract for mail and archive results.
+  </Card>
+  <Card title="MsOffice" icon="file-word" href="/output-contracts/msoffice">
+    Public JSON contract for Microsoft Office content.
+  </Card>
+  <Card title="OpenDoc" icon="file-lines" href="/output-contracts/opendoc">
+    Public JSON contract for OpenDocument content.
+  </Card>
+  <Card title="Parquet" icon="table" href="/output-contracts/parquet">
+    Public JSON contract for Parquet datasets.
+  </Card>
+  <Card title="PDF" icon="file-pdf" href="/output-contracts/pdf">
+    Public JSON contract for PDF results.
+  </Card>
+  <Card title="SQL" icon="database" href="/output-contracts/sql">
+    Public JSON contract for SQL statement results.
+  </Card>
+</CardGroup>
+
+## What clients can rely on
+
+- The contract is public and stable for a given version.
+- Results are returned after processing completes.
+- The envelope stays client-facing and family-based.
+- Optional fields may be omitted when they do not apply.
+- Family-specific fields live in `document` or `attributes`, not in internal transport details.
+- Order stays deterministic within each family.
+
+## Shared envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Shared rules
+
+- `schema_version` identifies the public contract version.
+- `document` always appears.
+- `warnings` always appears.
+- `content` always appears for families that expose ordered content records.
+- `attributes` holds family-specific data.
+- `source_ref` carries provenance when the family exposes one.
+- No page in this section documents internal worker behavior or transport mechanics.

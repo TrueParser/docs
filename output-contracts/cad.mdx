@@ -1,0 +1,111 @@
+---
+title: "CAD"
+description: "Public result contract for CAD drawings."
+---
+
+# CAD
+
+Use this contract for CAD drawing results.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `format` | Normalized source format such as `DWG` or `DXF`. |
+| `format_family` | Always `cad`. |
+| `document_name` | Display name for the drawing. |
+| `source_file` | Preserved source file name. |
+| `source_format` | Raw source format label. |
+| `document_format` | Document format label when present. |
+| `units` | Normalized consumer-facing units. |
+| `source_units` | Source unit label when present. |
+| `version` | Drawing version. |
+| `title`, `subject`, `company` | Reserved document metadata. |
+| `schema_version`, `schemaVersion` | Public contract markers. |
+| `author`, `source_author` | Normalized author and raw source author. |
+| `created` | Creation timestamp when available. |
+| `source_engine` | Parser identity. |
+| `metadata` | Additive document metadata. |
+| `extents` | Drawing-level extents. |
+| `layer_count`, `block_count`, `block_entity_count`, `entity_count` | Summary counts when available. |
+| `layers`, `blocks`, `blockEntities`, `entities` | Public drawing collections. |
+
+## Universal content/block shape
+
+CAD content records use the public base record shape when they are materialized as records.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `order` | Deterministic emission order when present. |
+| `path` | Stable public path or hierarchy label. |
+| `parent_id` | Parent record id when relevant. |
+| `depth` | Structural depth. |
+| `source_ref` | Provenance object when available. |
+| `is_inferred` | Indicates whether the record was inferred. |
+| `warnings` | Record-local human-readable notes. |
+| `content_hash` | Optional orchestrator hash. |
+| `text` | Plain-text projection for search. |
+| `attributes` | CAD-specific structured data. |
+
+Entity records can also carry geometry, `bbox`, `centroid`, `wkt`, `coverageState`, `space`, `containerId`, `children`, `relations`, and `properties`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings human-readable.
+- Do not use warnings to hide loss of geometry or identity.
+
+## What clients can rely on
+
+- Drawing identity stays stable.
+- Layer, block, and entity names stay public and readable.
+- Geometry and traceability stay separate.
+- Additive fields do not break older clients.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "format": "DWG",
+    "format_family": "cad",
+    "document_name": "drawing.dwg",
+    "source_file": "drawing.dwg",
+    "units": "Millimeters",
+    "version": "AC1032",
+    "metadata": {},
+    "layers": [],
+    "blocks": [],
+    "blockEntities": {},
+    "entities": [
+      {
+        "id": "A1",
+        "type": "LINE",
+        "space": "model",
+        "containerId": "25",
+        "properties": {}
+      }
+    ]
+  },
+  "warnings": [],
+  "content": []
+}
+```

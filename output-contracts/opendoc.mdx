@@ -1,0 +1,101 @@
+---
+title: "OpenDoc"
+description: "Public result contract for OpenDocument outputs."
+---
+
+# OpenDoc
+
+Use this contract for OpenDocument and related package outputs.
+
+The public shape is client-facing only.
+
+## Top-level envelope
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {},
+  "warnings": [],
+  "content": []
+}
+```
+
+## Document fields
+
+| Field | Notes |
+| --- | --- |
+| `source_file`, `document_name` | Source file and display name. |
+| `format` | Concrete source format such as `odt`, `ods`, or `odp`. |
+| `format_family` | Public family marker such as `text_document`, `spreadsheet`, `presentation`, `drawing`, `formula`, `publication_package`, `data_table`, `layout_document`, or `odf_generic`. |
+| `title`, `author`, `subject`, `company` | Document metadata fields. |
+| `created_at`, `modified_at` | Timestamps when available. |
+| `is_partial` | Public completeness flag. |
+| `metadata` | Additive document metadata. |
+| `page_count`, `sheet_count`, `slide_count`, `record_count` | Summary counts when available. |
+
+## Universal content/block shape
+
+Every public content record uses the same base shape.
+
+| Field | Notes |
+| --- | --- |
+| `id` | Stable record id. |
+| `type` | Public record type. |
+| `path` | Public structural path. |
+| `parent_id` | Parent record id. |
+| `depth` | Structural depth. |
+| `page_number` | Page-like reference when applicable. |
+| `source_ref` | Provenance object. |
+| `is_inferred` | Inference marker. |
+| `chunk_hint` | Present only when you request it. |
+| `text` | Searchable text projection. |
+| `attributes` | OpenDoc-specific structured data. |
+
+Common record types include `section`, `heading`, `paragraph`, `list`, `list_item`, `code`, `table`, `row`, and `cell`.
+
+## Warnings
+
+- `warnings` is always present.
+- Use plain strings.
+- Keep warnings readable.
+- Do not use warnings to replace structure or provenance.
+
+## What clients can rely on
+
+- The contract stays compact and stable.
+- Structure stays explicit.
+- `attributes` holds family-specific details.
+- Optional fields may be omitted when they do not apply.
+- The public contract does not expose internal transport or worker details.
+
+## Example
+
+```json
+{
+  "schema_version": "1.0",
+  "document": {
+    "source_file": "sample.ods",
+    "document_name": "sample.ods",
+    "format": "ods",
+    "format_family": "spreadsheet",
+    "is_partial": false,
+    "metadata": {},
+    "sheet_count": 1
+  },
+  "warnings": [],
+  "content": [
+    {
+      "id": "blk_0001",
+      "type": "section",
+      "path": "content.xml",
+      "parent_id": null,
+      "depth": 0,
+      "page_number": null,
+      "source_ref": null,
+      "is_inferred": false,
+      "text": "Sheet1",
+      "attributes": {}
+    }
+  ]
+}
+```
