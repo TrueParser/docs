@@ -113,13 +113,20 @@ Built for enterprise use with:
 
 Below is a detailed view of the formats supported by the TrueParser engine library.
 
-### PDF & Vision (TrueParserPdf)
+### PDF (TrueParserPdf)
 
-TrueParserPdf uses a dual-pipeline approach for document intelligence:
+TrueParserPdf supports three PDF modes:
 
-- **Basic Pipeline**: High-performance text and table extraction using Syncfusion and Tabula heuristics. Supports `SingleColumn` and `MultiColumn` reading flows.
-- **Advanced Pipeline**: Vision model-based extraction for complex layouts and OCR-required documents, normalizing provider-specific output into canonical blocks.
-- **Output**: Canonical JSON artifacts for product retrieval and downstream use.
+- **Basic Single Column**: Optimized for standard text and table extraction in single-column layouts.
+- **Basic Multi Column**: Optimized for multi-column reading flows in standard digital PDFs.
+- **Advanced**: OCR for scanned PDFs and OCR-aware extraction for complex digital layouts. Advanced runs are limited to 100 pages per run in beta.
+
+Beta limits for PDF processing:
+
+- Maximum file size: 25 MB
+- Advanced mode page limit: 100 pages per run
+
+Output is returned as canonical JSON for product retrieval and downstream use.
 
 ### Parquet (TrueParserParquet)
 

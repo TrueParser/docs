@@ -20,6 +20,14 @@ These pages describe the public, client-facing result contract for each family. 
 | `Parquet` | `Parquet` |
 | `SQL` | `SQL` |
 
+## Upload limits
+
+Upload limits depend on the ingestion path:
+
+- Direct upload: up to `25 MB`
+- Presigned upload: up to `100 MB`
+- Effective cap: the lower of the endpoint default and `JWT maxInputBytesPerDocument` when that JWT limit is set
+
 <CardGroup cols={2}>
   <Card title="CAD" icon="drafting-compass" href="/output-contracts/cad">
     Public JSON contract for CAD drawings.

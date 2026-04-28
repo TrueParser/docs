@@ -7,6 +7,17 @@ description: "Public result contract for PDF outputs."
 
 Use this contract for PDF results. It is designed for fixed-layout document workflows where teams need search, OCR-aware extraction, policy review, contract analysis, and RAG over page-faithful content.
 
+## Supported modes
+
+- **Basic Single Column**: Standard extraction for single-column PDF layouts.
+- **Basic Multi Column**: Standard extraction for multi-column PDF layouts.
+- **Advanced**: OCR for scanned PDFs and OCR-aware extraction for complex digital layouts. Advanced runs are limited to 100 pages per run in beta.
+
+## Beta limits
+
+- Maximum file size: 25 MB
+- Advanced mode page limit: 100 pages per run
+
 ## Top-level envelope
 
 ```json
