@@ -7,6 +7,8 @@ The TrueParser Parsing Engine is the core execution layer of the platform. It is
 
 Unlike monolithic parsers, TrueParser uses a scalable architecture to handle technical and enterprise document extraction at scale.
 
+TrueParser does not expose a direct synchronous parsing mode. All document parsing requests enter the asynchronous worker pipeline and are completed through status polling and result retrieval.
+
 ## Core Concepts
 
 ### Unified Orchestration
@@ -20,7 +22,7 @@ Built for high-performance and low memory overhead, the engine is "stream-in, st
 This design allows TrueParser to process multi-gigabyte archives and complex documents without full-document buffering, making it suitable for high-volume forensics and enterprise ingestion.
 
 ### Asynchronous Execution
-Document parsing is an asynchronous process. When you submit a document, the system accepts the job and engine processing ensures the final result is persisted for retrieval once the job is complete.
+Document parsing is always asynchronous. When you submit a document, the system accepts the job, queues it for worker processing, and persists the final result for retrieval once the job is complete.
 
 ## How it Works
 
@@ -29,5 +31,6 @@ Document parsing is an asynchronous process. When you submit a document, the sys
 3. **Processing**: Specialized worker pipelines consume the document and generate structured data.
 4. **Materialization**: The engine's raw output is transformed into a canonical JSON representation.
 5. **Persistence**: The final artifact is stored in tenant-scoped S3-compatible storage for retrieval.
+6. **Retrieval**: You poll job status and fetch the final result when processing is complete.
 
 Through this flow, TrueParser transforms diverse, messy technical documents into clean, queryable, and structured data for your downstream pipelines.

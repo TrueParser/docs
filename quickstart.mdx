@@ -7,48 +7,73 @@ description: "Sign up, create your app, and parse your first document in minutes
 
 Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
 
-- **Authentication**: TrueParser Dashboard uses **Google Authentication** to manage your account.
-- **Initial State**: New accounts start in a **Pending Activation** state. You will receive an automated email once your organization is active.
+- **Authentication**: TrueParser Dashboard uses Google authentication to manage your account.
+- **Initial State**: New accounts start in a `Pending Activation` state. You will receive an automated email once your organization is active.
 
 ---
 
-## 2. Create an App
+## 2. Create An App
 
-To access the parsing engines, you need a security token. Tokens are issued to **Applications** through an OAuth 2 machine-to-machine flow. Create an app in the dashboard to generate your credentials.
+To access the parsing platform, create a tenant application in the dashboard. The app gives your backend or Demo UI a `client_id` and `client_secret` for OAuth 2.0 `client_credentials`.
 
 <Steps>
-  <Step title="Open the Apps section">
-    Navigate to **Apps** in the dashboard sidebar and click **Add Application**.
+  <Step title="Open The Apps Section">
+    Navigate to **Apps** in the dashboard and click **Add Application**.
   </Step>
-  <Step title="Name your app">
-    Identify the service connecting to TrueParser, for example
-    `my-document-parser`.
+  <Step title="Name Your App">
+    Identify the service connecting to TrueParser, for example `my-document-parser`.
   </Step>
-  <Step title="Set the License Region">
-    Choose the geographic region closest to your primary data region (e.g.,
-    `aws-us-east-1`).
+  <Step title="Set The License Region">
+    Choose the geographic region closest to your primary data region.
   </Step>
-  <Step title="Save your credentials">
-    Immediately copy your **Client ID** and **Client Secret**. The secret is
-    shown in plaintext only at this step.
+  <Step title="Save Your Credentials">
+    Immediately copy your `client_id` and `client_secret`. The secret is shown in plaintext only at this step.
   </Step>
 </Steps>
 
+<CardGroup cols={2}>
+  <Card title="App Setup" icon="gear" href="/dashboard/app-setup">
+    Review the app fields, allowed domains, and credential rules.
+  </Card>
+  <Card title="Demo UI" icon="display" href="/dashboard/demo-ui">
+    Use the tenant-facing workspace to test one app manually.
+  </Card>
+</CardGroup>
+
 ---
 
-## 3. Recommended: Activate a Plan
+## 3. Optional: Configure Storage
 
-To parse technical documents, your application requires the **usage quota** provided by a plan. While you can obtain a token without a plan, it will be rejected by the parsing engine as it lacks the required permissions. Select a plan from the **Plans** tab of your application.
+If your tenant wants to use its own S3-compatible storage, configure that on the app before you go live.
+
+- the storage config is stored per app
+- supported providers include AWS S3, Tigris, Cloudflare R2, MinIO, and Backblaze B2
+- the platform uses your stored storage credentials on your behalf
 
 <Tip>
-  **Quota Activation.** To enable parsing operations, you must select an
-  available plan in the dashboard. This ensures your issued tokens contain the
-  required usage quotas for your License Region.
+  You still retrieve results through the platform API. Your application does
+  not connect directly to the bucket.
 </Tip>
 
 ---
 
-## 4. Understand Document Units
+## 4. Recommended: Activate A Plan
+
+To parse technical documents, your application may need a usable plan. A plan adds the `entitlements` claim to the app token.
+
+<Tip>
+  A usable plan provides the monthly Document Unit quota and any feature flags
+  your app is entitled to use.
+</Tip>
+
+<Note>
+  If you do not assign a plan, token issuance can still succeed, but the
+  `entitlements` claim is omitted.
+</Note>
+
+---
+
+## 5. Understand Document Units
 
 TrueParser measures parsing consumption in **Document Units**.
 
@@ -60,13 +85,11 @@ Depending on the parser family, one Document Unit may correspond to:
 - one logical dataset for GIS sources
 - one processed document for CAD sources
 
-Your plan's `limits` claim controls the Document Units your app can consume across the per-document, hourly, daily, weekly, and monthly quota windows.
-
 ---
 
-## 5. Get an Access Token
+## 6. Get An Access Token
 
-Exchange your application credentials for a security token at the **Identity Authority**:
+Exchange your application credentials for a security token at the token endpoint:
 
 ```bash
 curl -X POST https://admin-api.trueparser.com/connect/token \
@@ -79,30 +102,32 @@ curl -X POST https://admin-api.trueparser.com/connect/token \
 
 ---
 
-## 6. Ingest a Document
+## 7. Ingest A Document
 
 Submit a document for parsing. Some formats require additional routing parameters:
 
 - PDF requires `pdfMode`
 - SQL requires `sqlDialect`
 - CSV requires `csvRoute`
+- Parquet can include `parquetMode` (`MetadataOnly` or `MetadataPlusRows`)
 - ZIP-based uploads should include an explicit `documentType`
 
 ```bash
-curl -X POST https://api.trueparser.com/api/v1/documents/parse \
+curl -X POST "https://api.trueparser.com/api/v1/documents/upload?fileName=document.pdf&documentType=Pdf&pdfMode=SingleColumn" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -F "file=@/path/to/document.pdf" \
-  -F "documentType=Pdf" \
-  -F "pdfMode=SingleColumn"
+  -H "Content-Type: application/pdf" \
+  --data-binary "@/path/to/document.pdf"
 ```
 
-The API returns a **202 Accepted** with a `documentId` for tracking.
+TrueParser always processes documents asynchronously. The API returns a
+`202 Accepted` with a `documentId` for tracking, then you poll status until
+the job completes and fetch the result afterward.
 
 ---
 
-## 7. Poll for Completion
+## 8. Poll For Completion
 
-TrueParser is an **asynchronous** platform. Before fetching results, poll the status endpoint until the job reaches `completed`.
+TrueParser is an asynchronous platform. Before fetching results, poll the status endpoint until the job reaches `completed`.
 
 ```bash
 curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/status \
@@ -114,9 +139,9 @@ Wait for `"status": "completed"`. Typical status values include `queued`, `proce
 
 ---
 
-## 8. Retrieve Results
+## 9. Retrieve Results
 
-Once the status is confirmed as `completed`, download your structured JSON results from the **Parsing API**:
+Once the status is confirmed as `completed`, download your structured JSON results from the API:
 
 ```bash
 curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/result \
@@ -124,9 +149,9 @@ curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/result \
 ```
 
 <Note>
-  **Result Streaming.** TrueParser streams the parsed JSON artifact directly
-  through the `/result` endpoint. Clients do **not** fetch results from S3 or
-  external storage directly.
+  If your app uses tenant-owned S3-compatible storage, TrueParser writes the
+  result there on your behalf. Your application still uses the API for status
+  checks and result retrieval.
 </Note>
 
 <Tip>
@@ -136,11 +161,7 @@ curl -X GET https://api.trueparser.com/api/v1/documents/YOUR_DOC_ID/result \
 </Tip>
 
 <CardGroup cols={1}>
-  <Card
-    title="Learn about Result Delivery"
-    icon="file-export"
-    href="/parsing-engine/delivery"
-  >
-    Understand how results are materialized and fetched from the API.
+  <Card title="Demo UI" icon="display" href="/dashboard/demo-ui">
+    Try the manual test workspace before building a backend integration.
   </Card>
 </CardGroup>

@@ -28,11 +28,11 @@ Until the tenant is active, tenant apps under that tenant cannot complete normal
 
 ## 3. Create Your First App
 
-Your app is the machine identity your backend will use to request tokens.
+Your app is the machine identity your backend or Demo UI will use to request tokens.
 
 <Steps>
   <Step title="Create The App">
-    Open **Apps** in the dashboard and create a new tenant app.
+    Open **Apps** in the dashboard and create a new tenant application.
   </Step>
   <Step title="Choose A Region">
     Select a valid license region. The backend resolves the region and stamps the app with the region and database metadata it needs later.
@@ -49,7 +49,17 @@ Your app is the machine identity your backend will use to request tokens.
   The plaintext `client_secret` is shown only once when the app is created. If you lose it, regenerate the secret from the dashboard. The regenerated secret is also shown only once, and the old secret is invalidated.
 </Warning>
 
-## 4. Understand The Required App State
+## 4. Optional: Set Up Storage Or Demo Testing
+
+If your tenant uses its own S3-compatible storage, configure it on the app before going live.
+
+- storage is configured per app
+- the platform uses your stored storage credentials on your behalf
+- your app still retrieves results through the API
+
+If you are testing manually, connect the Demo UI to this app and upload sample documents there.
+
+## 5. Understand The Required App State
 
 For a tenant app to issue tokens successfully:
 
@@ -58,17 +68,17 @@ For a tenant app to issue tokens successfully:
 3. the app must have a license region
 4. the app must have a stamped database code
 
-## 5. Assign A Plan If You Need Quotas
+## 6. Assign A Plan If You Need Quotas
 
-Plans are optional for token issuance, but they matter if your backend depends on the `limits` claim.
+Plans are optional for token issuance, but they matter if your backend depends on the `entitlements` claim.
 
-- no plan assigned: token can still be issued, but no `limits` claim is added
-- usable plan assigned: token includes `limits` (expressed in Document Units)
+- no plan assigned: token can still be issued, but no `entitlements` claim is added
+- usable plan assigned: token includes `entitlements` in Document Units and feature flags
 - retired plan assigned: token issuance is blocked
 
-There is also a current one-free-plan rule per tenant.
+Free plans can be assigned directly, but only one app per tenant can use a free plan.
 
-## 6. Use The App Credentials From Your Backend
+## 7. Use The App Credentials From Your Backend
 
 Once the tenant is active and the app is created, your backend can request a token using `client_credentials`.
 
@@ -76,4 +86,5 @@ See:
 
 - [Authentication](/dashboard/authentication)
 - [App Setup and Credentials](/dashboard/app-setup)
+- [Demo UI](/dashboard/demo-ui)
 - [Billing](/dashboard/billing)

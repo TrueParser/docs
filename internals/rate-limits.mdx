@@ -5,7 +5,7 @@ description: "How TrueParser applies plan-based request limits and upload protec
 
 ## Overview
 
-TrueParser applies plan-based limits to keep usage predictable and fair across a tenant.
+TrueParser applies plan-based limits to keep parsing traffic predictable and fair across a tenant.
 
 These limits are enforced across the tenant and apply to all apps attached to that tenant.
 
@@ -15,14 +15,9 @@ These limits are enforced across the tenant and apply to all apps attached to th
   [here](https://trueparser.com/contact).
 </Card>
 
-Depending on your plan, limits can be applied over multiple windows:
+Depending on your plan, limits can be applied over multiple usage windows that reset over time.
 
-- per minute
-- per day
-- per week
-- per month
-
-The exact values depend on your plan.
+The exact values are plan-specific and are not exposed in this document.
 
 ## Request Limits
 
@@ -30,56 +25,38 @@ TrueParser enforces request limits for API traffic.
 
 At a high level:
 
-- request limits are enforced per tenant
-- limits are shared across all apps attached to the same tenant
-- exceeding a limit returns `429 Too Many Requests`
+- request limits are enforced per app and tenant context
+- limits are shared across the tenant's parsing traffic
+- if an app sends too many requests too quickly, the API may return `429 Too Many Requests`
 
 ## Upload Protections
 
-TrueParser also applies upload protections to keep large or bursty traffic from overwhelming the platform.
+TrueParser also applies upload protections to keep bursty traffic from overwhelming the platform.
 
 These protections help balance:
 
+- queue depth
 - concurrency
 - request bursts
 - upload bandwidth
 
-At the product level, tenants are protected by caps on concurrent uploads, request rate, and upload bandwidth.
+At the product level, tenants are protected by resource guards that limit how much work can be accepted at once.
 
 We do not expose the internal enforcement details, but the platform uses these controls together with plan-based limits to keep upload behavior fair.
-
-## Upload Size Support
-
-The platform supports mixed upload sizes up to a maximum of `25 MB` per upload, subject to your plan.
-
-That means a tenant may upload:
-
-- `1 KB` files
-- `1 MB` files
-- `25 MB` files
-
-The request limits and upload protections work together so small uploads and large uploads are both handled fairly.
 
 ## Plan-Based Usage Windows
 
 In addition to upload limits, TrueParser plans may include usage windows that reset over time.
 
-These windows may include:
-
-- per minute
-- per day
-- per week
-- per month
-
 The exact combination of windows depends on the plan you are on.
 
 ## Recommended Baseline
 
-For a `25 MB` maximum upload size, a good starting point is:
+A good starting point is:
 
 - plan-based limits set according to your tenant tier
 - upload protections enabled by default
-- maximum upload size of `25 MB`
+- conservative client-side retry and backoff behavior
 
 This gives enough headroom for mixed traffic while still keeping upload pressure under control.
 
@@ -87,8 +64,9 @@ This gives enough headroom for mixed traffic while still keeping upload pressure
 
 - Limits are tenant-scoped.
 - All apps for the same tenant share the same limits.
-- Tenant plans may include caps on concurrent uploads, request rate, and upload bandwidth.
+- Tenant plans may include caps on concurrent uploads, request rate, queue depth, and upload bandwidth.
 - The exact values can be tuned later as workloads change.
-- If a request exceeds a limit, the platform returns `429 Too Many Requests`.
+- If a request exceeds a limit or the system is under pressure, the platform returns `429 Too Many Requests`.
+- If you send too many requests too quickly, expect the platform to protect itself by refusing additional work until pressure drops.
 
 If the platform is temporarily overloaded, it may also return `503 Service Unavailable`, and you should retry with backoff when appropriate.

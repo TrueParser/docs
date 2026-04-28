@@ -23,7 +23,6 @@ Tenant applications use machine-to-machine authentication.
 For tenant-facing M2M usage, treat token renewal as re-authentication with the app credentials.
 
 - request a new access token using `client_id` and `client_secret`
-- do not depend on refresh-token based M2M renewal in tenant docs
 - cache and reuse access tokens until they are close to expiry
 
 <Tip>
@@ -66,10 +65,10 @@ When configured, these values are included in the app's access token as claims.
 
 ## 4. Plan And Usage Protection
 
-Plans control the usage limits attached to an app.
+Plans control the usage entitlements attached to an app.
 
-- if no plan is assigned, the app can still obtain a token, but the `limits` claim is omitted
-- if a usable plan is assigned, the token includes usage limits
+- if no plan is assigned, the app can still obtain a token, but the `entitlements` claim is omitted
+- if a usable plan is assigned, the token includes usage entitlements
 - if a retired plan is assigned, token issuance is blocked
 
 For tenant-facing docs, usage should be understood as **Document Units**.

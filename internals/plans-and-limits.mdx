@@ -24,7 +24,7 @@ Depending on parser family, one Document Unit may correspond to:
 - a page
 - an email/message item
 - a SQL statement
-- a logical file or dataset
+- a byte-based processing measure for size-accounted families
 
 This lets TrueParser present one consistent commercial model across very different parsing engines.
 
@@ -51,13 +51,17 @@ The current Document Unit mapping is:
 | OpenDoc  | One page                         |
 | MailKit  | One top-level email/message item |
 | SQL      | One statement                    |
-| GIS      | One logical dataset              |
-| CAD      | One processed document           |
+| GIS      | 1 usage unit per 100 KiB, rounded up |
+| CAD      | 1 usage unit per 100 KiB, rounded up |
+| Parquet  | 1 usage unit per 100 KiB, rounded up |
 
 <Card title="Important">
   <strong>Document Unit</strong> is the product term used across plans, pricing,
   quota enforcement, and customer-facing usage discussions. The exact technical
-  counting rule depends on the parser family listed above.
+  counting rule depends on the parser family listed above. Some families are
+  counted by page or item, while CAD, GIS, and Parquet are counted in 100 KiB
+  usage units rounded up from the uploaded payload size. That means a 50 KiB
+  file still counts as 1 usage unit.
 </Card>
 
 ## Quota Windows
@@ -85,6 +89,11 @@ Byte tracking is useful for:
 Byte usage is separate from Document Units. A large upload does not automatically mean a large Document Unit count, and vice versa.
 
 The platform also enforces a maximum upload size per document under your plan.
+
+For size-accounted families such as CAD, GIS, and Parquet, the platform counts
+usage in 100 KiB units rounded up from the uploaded payload size rather than
+page-based counting. Any non-empty upload below 100 KiB still counts as
+1 usage unit.
 
 ## Usage Visibility
 

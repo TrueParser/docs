@@ -1,0 +1,59 @@
+---
+title: "Demo UI"
+description: "Connect one tenant application to the demo workspace and upload documents for testing."
+---
+
+The Demo UI is a tenant-facing workspace for trying TrueParser without wiring a backend first.
+
+Each demo workspace is connected to one tenant application.
+
+## What You Need
+
+Before you connect the Demo UI, create a tenant application and copy its credentials.
+
+- `client_id`
+- `client_secret`
+- the app's license region
+- optional storage configuration, if your tenant uses its own S3-compatible bucket
+
+## Connect The Demo UI
+
+<Steps>
+  <Step title="Create An App">
+    Create a tenant application in the dashboard.
+  </Step>
+  <Step title="Copy The Credentials">
+    Copy the app's `client_id` and `client_secret` from the dashboard.
+  </Step>
+  <Step title="Open The Demo UI">
+    Open the Demo UI and paste the credentials for the app you want to test.
+  </Step>
+  <Step title="Save The Connection">
+    Save the connection so the workspace can request tokens for that app.
+  </Step>
+  <Step title="Upload Documents">
+    Upload sample documents and use the workspace to test parsing behavior.
+  </Step>
+</Steps>
+
+<Note>
+  A Demo UI workspace is intentionally tied to one tenant application. If you
+  need a separate test setup, create another app and connect it to a different
+  workspace.
+</Note>
+
+## When To Use It
+
+- quick product demos
+- manual validation before backend integration
+- testing a single tenant app with a known set of credentials
+
+<Tip>
+  The Demo UI is for testing and demos, not for production backend traffic.
+</Tip>
+
+## Related Docs
+
+- [App Setup and Credentials](/dashboard/app-setup)
+- [Authentication](/dashboard/authentication)
+- [Quickstart](/quickstart)

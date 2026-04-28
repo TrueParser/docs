@@ -59,6 +59,7 @@
               "dashboard/onboarding",
               "dashboard/license-regions",
               "dashboard/app-setup",
+              "dashboard/demo-ui",
               "dashboard/billing"
             ]
           },

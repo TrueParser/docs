@@ -32,28 +32,41 @@ The following endpoints do not require a security token:
 ## Document Parsing
 
 ### Ingest Document
-`POST /api/v1/documents/parse`
+`POST /api/v1/documents/upload`
 
-Submit a document for asynchronous parsing. This endpoint supports `multipart/form-data`.
+Submit a document for asynchronous parsing. This endpoint accepts the file as the raw HTTP request body.
 
 #### Request Parameters
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
-| `file` | Binary | Yes | The document to be parsed. |
+| `fileName` | Query String | No | File name used for extension/type detection. |
 | `documentId` | String | No | A custom identifier. If provided, used for idempotency/overwrites. |
 | `documentType` | String | No* | The format (e.g., `Pdf`, `ShpZip`, `MapInfo`, `FileGdb`). *Required for ZIP uploads.* |
-| `csvRoute` | String | No | Must be `Gis` or `Office` if the document is a CSV. |
-| `sqlDialect` | String | No | Required for SQL files (e.g., `PostgreSql`, `TSql`, `Snowflake`). |
-| `pdfMode` | String | No | Required for PDF (e.g., `Fast`, `Standard`, `Advanced`). |
-| `customMetadataJson` | JSON | No | A JSON object of key-value pairs to attach to the job. |
+| `csvRoute` | String | No | Required for CSV. Must be `Spatial` or `Tabular`. |
+| `sqlDialect` | String | No | Required for SQL files (e.g., `PostgreSql`, `MsSql`, `Snowflake`). |
+| `pdfMode` | String | No | Required for PDF. Valid values: `SingleColumn`, `MultiColumn`, `Ocr`, `Advanced`. |
+| `parquetMode` | String | No | Optional for Parquet. Valid values: `MetadataOnly`, `MetadataPlusRows`. Default is `MetadataOnly`. |
+| `customMetadataJson` | String(JSON) | No | JSON object encoded as a query value; attached to the job. |
+| `chunkHints` | Boolean | No | Optional chunking hint for supported Office/OpenDocument/PDF flows. |
 
 #### Response (202 Accepted)
 ```json
 {
   "documentId": "7b1c0d8c-...",
-  "status": "queued"
+  "status": "Queued",
+  "statusInt": 2
 }
 ```
+
+### Create Presigned Upload Request
+`POST /api/v1/documents/upload-request`
+
+Creates a tenant-scoped upload session for larger files.
+
+### Complete Presigned Upload
+`POST /api/v1/documents/upload-complete`
+
+Finalizes a previously created upload session and enqueues parsing.
 
 ---
 
@@ -67,8 +80,11 @@ Returns the current processing state of the job.
 #### Status Values
 - `queued`: Waiting in the orchestration queue.
 - `processing`: The engine is actively extracting data.
+- `materializing`: Parsed content is being materialized.
+- `waiting-for-provider` / `provider-processing`: Provider-backed extraction is running.
 - `completed`: Result is ready for retrieval.
 - `failed`: Extraction failed. See the `error` field in the response.
+- `job not yet queued`: Upload has not been accepted into queue state yet.
 
 #### Response (200 OK)
 ```json
@@ -91,6 +107,19 @@ Streams the final, materialized JSON artifact directly.
 - **202 Accepted**: Document is still processing. Poll the status endpoint again.
 - **422 Unprocessable Entity**: The extraction failed. The body contains the specific error reason.
 - **404 Not Found**: The document ID is invalid or the artifact has expired (3-hour default retention).
+
+### Check Status (Batch)
+`POST /api/v1/documents/status/batch`
+
+Polls status for multiple documents in one call.
+
+Request body:
+
+```json
+{
+  "documentIds": ["doc-1", "doc-2"]
+}
+```
 
 ---
 

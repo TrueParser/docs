@@ -3,24 +3,33 @@ title: "Introduction"
 description: "High-performance parsing and structured data extraction across complex formats."
 ---
 
-TrueParser provides a unified API for extracting structured json from CAD, GIS, SQL, email archives, and enterprise files while preserving geometry, semantics, relationships, and layout for search, compliance, and GenAI workflows.
+TrueParser provides a unified API for extracting structured JSON from CAD, GIS, SQL, email archives, and enterprise files while giving tenants a control plane for apps, plans, regions, storage, and demos.
 
 ## Why TrueParser?
 
 <CardGroup cols={3}>
   <Card title="Unified API" icon="layer-group">
-    One endpoint for all your parsing needs, regardless of the underlying file
-    format.
+    One endpoint for all your parsing needs, regardless of the underlying file format.
   </Card>
   <Card title="Streaming-First" icon="bolt">
-    Stream-based processing keeps memory usage low even for very large
-    documents.
+    Stream-based processing keeps memory usage low even for very large documents.
   </Card>
   <Card title="Format Agnostic" icon="file-import">
-    Built-in detection and routing for CAD, SQL, PDF, and Enterprise Office
-    formats.
+    Built-in detection and routing for CAD, SQL, PDF, and enterprise Office formats.
   </Card>
 </CardGroup>
+
+---
+
+## Control Plane
+
+The dashboard is where tenant teams manage access and setup.
+
+- create tenant apps and credentials
+- assign plans and billing state
+- select a license region
+- configure optional tenant-owned storage
+- use the Demo UI for manual testing
 
 ---
 
@@ -30,16 +39,13 @@ TrueParser orchestrates specialized engines to deliver deep extraction capabilit
 
 <CardGroup cols={2}>
   <Card title="GIS & Geospatial" icon="map">
-    Preserve geometry (points, lines, polygons) and spatial metadata (CRS,
-    attributes).
+    Preserve geometry (points, lines, polygons) and spatial metadata (CRS, attributes).
   </Card>
   <Card title="CAD & Engineering" icon="drafting-compass">
-    DWG and DXF. Preserve entities, layers, blocks, and attributes in structured
-    JSON.
+    DWG and DXF. Preserve entities, layers, blocks, and attributes in structured JSON.
   </Card>
   <Card title="SQL & Database" icon="database">
-    Multi-dialect support for PostgreSQL, T-SQL, Snowflake, BigQuery, and 10+
-    others.
+    Multi-dialect support for PostgreSQL, T-SQL, Snowflake, BigQuery, and 10+ others.
   </Card>
   <Card title="Email & Archives" icon="envelope">
     PST, OST, EML, and MSG. Extract body, metadata, and attachments.
@@ -49,6 +55,9 @@ TrueParser orchestrates specialized engines to deliver deep extraction capabilit
   </Card>
   <Card title="Technical PDF" icon="file-pdf">
     Structured extraction from complex PDF documents with semantic awareness.
+  </Card>
+  <Card title="Parquet Datasets" icon="table">
+    Columnar extraction with metadata-first or metadata-plus-rows modes.
   </Card>
 </CardGroup>
 
@@ -76,11 +85,11 @@ TrueParser unifies technical geometry across disparate engines. Whether you are 
 
 ### Result Materialization
 
-The platform transforms parsed output into final, canonical JSON artifacts stored directly in your tenant-scoped S3-compatible storage.
+The platform transforms parsed output into final, canonical JSON artifacts stored in managed storage or your tenant-scoped S3-compatible storage, depending on how the app is configured.
 
 ### Document Units
 
-TrueParser measures parsing consumption in **Document Units**. A Document Unit is the commercial usage unit used for plan limits and quota enforcement.
+TrueParser measures parsing consumption in **Document Units**. A Document Unit is the commercial usage unit used for plan entitlements and quota enforcement.
 
 Depending on the parser family, one Document Unit may correspond to:
 
@@ -109,8 +118,14 @@ Below is a detailed view of the formats supported by the TrueParser engine libra
 TrueParserPdf uses a dual-pipeline approach for document intelligence:
 
 - **Basic Pipeline**: High-performance text and table extraction using Syncfusion and Tabula heuristics. Supports `SingleColumn` and `MultiColumn` reading flows.
-- **Advanced Pipeline**: **Vision model-based** extraction for complex layouts and OCR-required documents, normalizing provider-specific output into canonical blocks.
+- **Advanced Pipeline**: Vision model-based extraction for complex layouts and OCR-required documents, normalizing provider-specific output into canonical blocks.
 - **Output**: Canonical JSON artifacts for product retrieval and downstream use.
+
+### Parquet (TrueParserParquet)
+
+- **Modes**: `MetadataOnly` and `MetadataPlusRows`.
+- **Default**: If no mode is provided, ingestion defaults to `MetadataOnly`.
+- **Use Cases**: Fast schema validation, profile generation, and row-level extraction for downstream analytics.
 
 ### Messaging & Archives (TrueParserMailKit)
 
@@ -120,8 +135,8 @@ The engine handles complex Outlook-specific encapsulations like **TNEF (winmail.
 
 <Note>
   **Enterprise Access**: Rich item extraction (Calendar, Tasks, Contacts) is
-  available on all plans. However, **binary attachment extraction** is
-  exclusively supported on Enterprise-tier plans.
+  available on all plans. However, binary attachment extraction is exclusively
+  supported on Enterprise-tier plans.
 </Note>
 
 ### GIS & Geospatial (TrueParserGis)
@@ -159,8 +174,7 @@ Developer-friendly CAD-to-JSON conversion:
 
 <CardGroup cols={2}>
   <Card title="RAG & Semantic Search" icon="magnifying-glass">
-    Power your LLM pipelines with structured, meaningful context from technical
-    documents.
+    Power your LLM pipelines with structured, meaningful context from technical documents.
   </Card>
   <Card title="Compliance & Audit" icon="shield-check">
     Automate sensitive data discovery and extraction across large archive sets.
@@ -175,15 +189,14 @@ Developer-friendly CAD-to-JSON conversion:
 
 ## Next Steps
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
     Get your first document parsed in minutes.
   </Card>
-  <Card
-    title="Architecture"
-    icon="diagram-project"
-    href="/internals/reliability"
-  >
-    Learn how TrueParser handles scale and reliability.
+  <Card title="Dashboard Overview" icon="network-wired" href="/dashboard/overview">
+    Learn how tenants, apps, plans, and regions fit together.
+  </Card>
+  <Card title="Demo UI" icon="display" href="/dashboard/demo-ui">
+    Try the tenant-facing test workspace with one app.
   </Card>
 </CardGroup>

@@ -15,6 +15,8 @@ The status response includes the current lifecycle state:
 
 - `queued`: The job is waiting to be processed.
 - `processing`: The engine is actively parsing the document.
+- `materializing`: Structured output is being finalized.
+- `waiting-for-provider` / `provider-processing`: External-provider-backed extraction is in progress.
 - `completed`: The result has been materialized and is ready for download.
 - `failed`: An error occurred during extraction.
 

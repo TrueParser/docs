@@ -3,19 +3,19 @@ title: "App Setup and Credentials"
 description: "Create a tenant app, understand the required fields, and manage its credentials safely."
 ---
 
-This page covers the app setup flow for tenant applications created from the dashboard.
+This page covers tenant application setup in the dashboard.
 
-Tenant apps are used for machine-to-machine authentication against the backend. They are created as confidential clients and are intended for backend services, not browser-only clients.
+Tenant apps are confidential clients for backend services and the Demo UI. They are not intended for browser-only clients.
 
 <Note>
   An app can issue tokens without a plan, but the token will not include the
-  `limits` claim. If the app is assigned a retired plan, token issuance is
-  blocked. All limits are expressed in **Document Units**.
+  `entitlements` claim. If the app is assigned a retired plan, token issuance
+  is blocked.
 </Note>
 
 <Note>
-  By default, each tenant can create up to 3 apps. If you need more apps for a
-  tenant, contact support to request a higher limit.
+  App limits are tenant-scoped. If you need a higher app limit, contact
+  support.
 </Note>
 
 ## What An App Represents
@@ -24,44 +24,53 @@ Each app is an isolated machine identity under a tenant.
 
 - it has its own `client_id` and `client_secret`
 - it is tied to one license region at creation time
-- it stores the region-backed `DbCode` used during token issuance
+- it can have optional S3-compatible storage settings
 - it can be enabled or disabled independently
 - it can optionally have a plan assigned later
 
 ## Creation Workflow
 
-When you create an app in the dashboard, the backend creates a confidential OpenIddict client for the current tenant.
+When you create an app in the dashboard, the backend creates a confidential client for the current tenant.
 
 <Steps>
   <Step title="Choose A Region">
-    Select a valid license region. The backend validates that the region exists,
-    is active, and has an active region database available.
+    Select a valid license region. The backend validates that the region exists, is active, and has an active region database available.
   </Step>
   <Step title="Set A Name">
-    Enter a display name for the app. App names must be unique within the
-    tenant.
+    Enter a display name for the app. App names must be unique within the tenant.
   </Step>
   <Step title="Add Optional URLs">
-    Redirect and post-logout URLs are optional. If supplied, they must be valid
-    absolute URIs.
+    Redirect and post-logout URLs are optional. If supplied, they must be valid absolute URIs.
   </Step>
   <Step title="Add Allowed Domains">
     You can optionally store up to three allowed domains on the app.
   </Step>
   <Step title="Capture Credentials">
-    After creation, the app returns a generated `client_id` and plaintext
-    `client_secret`.
+    After creation, the app returns a generated `client_id` and plaintext `client_secret`.
   </Step>
 </Steps>
 
 <Warning>
-  App creation fails if the selected region does not have an active region
-  database.
+  App creation fails if the selected region does not have an active region database.
 </Warning>
+
+## Optional Storage Configuration
+
+Some tenants connect their own S3-compatible storage backend to an app.
+
+- supported providers include AWS S3, Tigris, Cloudflare R2, MinIO, and Backblaze B2
+- the storage config stores access key, secret key, bucket name, and optional endpoint or region
+- if no custom storage is configured, the platform uses managed storage
+- the platform uses the stored credentials on your behalf
+
+<Tip>
+  Your application still interacts with the platform API. It does not talk to
+  the underlying bucket directly.
+</Tip>
 
 ## What Gets Stored On The App
 
-In addition to the OpenIddict client record, the app stores tenant-specific metadata used later during token issuance.
+In addition to the OpenIddict client record, the app stores tenant-specific metadata used during token issuance.
 
 - `client_id`
 - `client_secret`
@@ -112,4 +121,5 @@ If a secret is lost or exposed, regenerate it from the dashboard.
 
 - [Authentication](/dashboard/authentication)
 - [License Regions](/dashboard/license-regions)
+- [Demo UI](/dashboard/demo-ui)
 - [Billing](/dashboard/billing)

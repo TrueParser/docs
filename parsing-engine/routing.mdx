@@ -25,7 +25,11 @@ CSV is a unique format because it can represent two very different kinds of data
 - **GIS/Spatial**: Coordinate lists and point layers.
 - **Tabular/Office**: Standard spreadsheets and reports.
 
-To resolve this, TrueParser requires an explicit `csvRoute` at ingestion time. This ensures that your spatial CSV is processed with the full GIS engine (geometry, WKT, BBOX) while your financial reports are handled by the lightweight tabular engine.
+To resolve this, TrueParser requires an explicit `csvRoute` at ingestion time:
+- `Spatial`: Routes to the GIS family.
+- `Tabular`: Routes to the Office family.
+
+This ensures that your spatial CSV is processed with the full GIS engine (geometry, WKT, BBOX) while your financial reports are handled by the tabular engine.
 
 ## Specialized Engine Families
 

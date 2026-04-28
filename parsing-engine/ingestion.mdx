@@ -3,22 +3,23 @@ title: "Document Ingestion"
 description: "How to submit files and streams to the TrueParser Parsing Engine."
 ---
 
-TrueParser accepts document ingestion through a high-performance HTTP API. The ingestion process is designed to be robust, handling both direct multipart uploads and raw streams.
+TrueParser accepts document ingestion through a high-performance HTTP API. The ingestion process is designed for streaming request bodies and optional presigned upload sessions for larger files.
 
 ## Submission Flow
 
-The primary endpoint for document ingestion is `POST /api/v1/documents/parse`.
+The primary endpoint for document ingestion is `POST /api/v1/documents/upload`.
 
 ### Ingestion Contract
 - **Authentication**: Requires a valid JWT access token issued by the Dashboard.
-- **Payload**: Accepts a multipart file upload.
+- **Payload**: Accepts the raw document stream in the HTTP request body.
 - **Identification**: You can optionally supply a `documentType` (e.g., `PDF`, `DWG`, `SHP_ZIP`). If omitted, TrueParser will attempt to detect the format automatically.
 
 ### Explicit Routing Requirements
 Some technical formats require explicit hints to ensure accurate parsing:
 - **SQL**: Requires a `sqlDialect` (e.g., `PostgreSQL`, `Snowflake`).
-- **CSV**: Requires a `csvRoute` to determine if it should be treated as a spatial GIS dataset or a tabular Office document.
-- **PDF**: Can accept a `pdfMode` for specialized extraction (e.g., `SingleColumn`, `MultiColumn`).
+- **CSV**: Requires a `csvRoute` (`Spatial` or `Tabular`) to disambiguate routing.
+- **PDF**: Requires a `pdfMode` (`SingleColumn`, `MultiColumn`, `Ocr`, `Advanced`).
+- **Parquet**: Supports optional `parquetMode` (`MetadataOnly`, `MetadataPlusRows`). If omitted, `MetadataOnly` is used.
 
 ## Identification & Metadata
 
@@ -37,3 +38,10 @@ TrueParser is optimized for high-volume ingestion. To achieve maximum throughput
 - **Streaming Ingestion**: Pass raw streams directly to the API where possible.
 - **Zero-Disk Buffering**: The engine processes data from memory to storage, avoiding expensive disk I/O operations on the system.
 - **Rate Limiting**: Ingestion is subject to your plan's concurrency and byte limits. Check your [Usage](/dashboard/billing) in the dashboard for current thresholds.
+
+## Upload Size Paths
+
+TrueParser supports two ingestion paths:
+
+- **Direct upload**: `POST /api/v1/documents/upload` for raw-body uploads (up to direct-upload limit).
+- **Presigned upload**: `POST /api/v1/documents/upload-request` then `POST /api/v1/documents/upload-complete` for larger files.

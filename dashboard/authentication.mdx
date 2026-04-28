@@ -3,7 +3,7 @@ title: "Authentication"
 description: "How dashboard users and tenant apps authenticate against the current backend."
 ---
 
-TrueParser separates human dashboard access from machine access used by tenant apps.
+TrueParser separates human dashboard access from machine access used by tenant apps and the Demo UI.
 
 ## Authentication Model
 
@@ -14,7 +14,7 @@ There are two main authentication paths:
 
 ## 1. Dashboard Sign-In
 
-The dashboard is used to manage tenants, apps, plans, and billing.
+The dashboard is used to manage tenants, apps, plans, storage, and billing.
 
 - **URL**: `https://dashboard.trueparser.com`
 - **Users**: tenant users
@@ -24,7 +24,7 @@ This is the management side of the control plane.
 
 ## 2. Machine Access For Tenant Apps
 
-Backend services authenticate by exchanging app credentials for an access token.
+Backend services and the Demo UI authenticate by exchanging app credentials for an access token.
 
 - **Token endpoint**: `https://admin-api.trueparser.com/connect/token`
 - **Identity**: tenant application
@@ -64,7 +64,7 @@ Common claims include:
 - `licenseRegionCode`
 - `dbCode`
 - `allowed_domain_1`, `allowed_domain_2`, `allowed_domain_3`
-- `limits` (expressed in Document Units)
+- `entitlements` when a usable plan is assigned
 
 Example:
 
@@ -77,14 +77,10 @@ Example:
   "licenseRegionCode": "aws-us-east-1",
   "dbCode": "region-db-code",
   "allowed_domain_1": "localhost:3000",
-  "limits": {
+  "entitlements": {
     "maxDocumentUnitsPerMonth": 1000,
-    "maxDocumentUnitsPerWeek": 500,
-    "maxDocumentUnitsPerDay": 250,
-    "maxDocumentUnitsPerHour": 100,
-    "maxApiRequestsPerMinute": 10,
-    "advancedExtraction": false,
-    "allowedFormats": ["sql", "eml", "msg"]
+    "advancedPdfExtraction": false,
+    "ocrPdfExtraction": false
   }
 }
 ```
@@ -101,14 +97,15 @@ For tenant apps, token issuance depends on app and tenant state.
 
 ## Plan Impact On Tokens
 
-Plan assignment affects the `limits` claim.
+Plan assignment affects the `entitlements` claim.
 
-- no plan assigned: token issuance can still succeed, but `limits` is omitted
-- usable plan assigned: token includes `limits`
+- no plan assigned: token issuance can still succeed, but `entitlements` is omitted
+- usable plan assigned: token includes `entitlements`
 - retired plan assigned: token issuance is blocked
 
 ## Related Docs
 
 - [Onboarding](/dashboard/onboarding)
 - [App Setup and Credentials](/dashboard/app-setup)
+- [Demo UI](/dashboard/demo-ui)
 - [Billing](/dashboard/billing)

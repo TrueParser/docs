@@ -1,45 +1,38 @@
 ---
 title: "Dashboard Overview"
-description: "Core control plane concepts for tenants, apps, plans, regions, and token issuance."
+description: "Core control plane concepts for tenants, apps, plans, regions, storage, and token issuance."
 ---
 
-The dashboard is the control plane for tenants and tenant apps.
+The dashboard is the control plane for tenants and tenant applications.
 
-The UI may be deployed at `dashboard.trueparser.com`, while the backend can be deployed separately, for example at `admin-api.trueparser.com`.
-
-This page introduces the core concepts developers need before using the other docs.
+Use it to create apps, assign plans, select a license region, and configure optional storage for your tenant.
 
 ## Main Concepts
 
 ### Tenant
 
-A tenant represents an organization boundary.
+A tenant represents one organization boundary.
 
-- top-level container for resources, billing, and team members
+- it owns apps, plans, billing, and users
 - tenant status affects whether tenant apps can issue tokens
 
 ### App
 
-Each tenant can create multiple apps.
+Each tenant can create one or more apps.
 
 - each app gets its own `client_id` and `client_secret`
-- each app is tied to a license region at creation time
-- each app stores region, database, plan, and allowed-domain metadata
+- each app is tied to one license region at creation time
+- each app can optionally have its own S3-compatible storage configuration
 - each app can be enabled or disabled independently
-
-<Note>
-  By default, a tenant can create up to 3 apps. If you need a higher app
-  limit, contact support.
-</Note>
 
 ### Plan
 
-A plan defines the limits that may be added to the app's token.
+A plan defines the monthly usage and feature entitlements available to an app.
 
-- current plan fields include **unit-based quotas** and `maxApiRequestsPerMinute`
 - plans are assigned per app
+- a usable plan adds the `entitlements` claim to the app token
 - a missing plan does not block token issuance
-- a retired assigned plan does block token issuance
+- a retired plan blocks token issuance
 
 ### License Region
 
@@ -48,6 +41,22 @@ License regions are host-managed records used during app creation.
 - app creation validates the region code
 - the selected region must have an active region database
 - the resolved `DbCode` is stamped onto the app
+
+### Storage
+
+Apps can optionally use a tenant-owned S3-compatible storage backend.
+
+- storage is configured per app
+- the platform uses the stored credentials on your behalf
+- your application still retrieves results through the API
+
+### Demo UI
+
+The Demo UI is a tenant-facing workspace for manual testing.
+
+- one Demo UI workspace is connected to one tenant application
+- you paste that app's credentials into the workspace
+- it is meant for demos and validation, not production backend traffic
 
 ## Security Model
 
@@ -65,7 +74,7 @@ Tenant apps use OAuth 2.0 `client_credentials` against the token endpoint.
 - the token endpoint is `/connect/token`
 - access token lifetime is configured to 15 minutes
 - the token includes tenant, app, region, and database claims
-- if the app has a usable plan, the token also includes `limits` (measured in **Document Units**)
+- if the app has a usable plan, the token also includes `entitlements`
 
 Typical M2M claims include:
 
@@ -74,7 +83,7 @@ Typical M2M claims include:
 - `licenseRegionCode`
 - `dbCode`
 - `allowed_domain_1`, `allowed_domain_2`, `allowed_domain_3`
-- `limits` when a usable plan is assigned
+- `entitlements` when a usable plan is assigned
 
 ## Suggested Reading Order
 
@@ -82,6 +91,7 @@ If you are new to the platform, read these next:
 
 1. [Onboarding](/dashboard/onboarding)
 2. [App Setup and Credentials](/dashboard/app-setup)
-3. [Authentication](/dashboard/authentication)
-4. [Billing](/dashboard/billing)
-5. [License Regions](/dashboard/license-regions)
+3. [Demo UI](/dashboard/demo-ui)
+4. [Authentication](/dashboard/authentication)
+5. [Billing](/dashboard/billing)
+6. [License Regions](/dashboard/license-regions)

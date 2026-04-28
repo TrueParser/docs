@@ -6,8 +6,8 @@ description: "How plans are assigned to apps and how the billing flow works."
 Plans are assigned per app.
 
 <Note>
-  No plan assigned: the app can still issue tokens, but no `limits` claim is
-  added. Retired plan assigned: token issuance is blocked.
+  No plan assigned: the app can still issue tokens, but no `entitlements`
+  claim is added. Retired plan assigned: token issuance is blocked.
 </Note>
 
 ## What Billing Controls
@@ -37,6 +37,8 @@ Free plans can be assigned directly without a checkout session.
 
 If the app already has a paid subscription, the backend cancels that subscription and updates the app state before completing the free-plan assignment.
 
+Only one app per tenant can use a free plan.
+
 ### Paid Plans
 
 Paid plans use the payment provider flow.
@@ -44,12 +46,6 @@ Paid plans use the payment provider flow.
 - if the app already has an active paid subscription, the backend requests a plan change on that subscription
 - if the app has no active paid subscription, the backend creates a checkout session
 - the final assignment is completed after the billing flow succeeds
-
-## One Free Plan Rule
-
-The current domain logic allows only one app with a free plan per tenant.
-
-If a tenant already has another app on a free plan, assigning a free plan to a second app fails.
 
 ## Subscription Status
 
@@ -82,8 +78,8 @@ The backend treats plan status differently depending on the operation.
 
 For setup and troubleshooting, these are the most important rules:
 
-- assign a usable plan if you need the `limits` claim (measured in **Document Units**)
-- keep only one free-plan app per tenant
+- assign a usable plan if you need the `entitlements` claim
+- keep only one app per tenant on a free plan
 - expect billing flow only for paid plans
 - if a paid app becomes `OnHold`, billing action is required before normal changes continue
 
