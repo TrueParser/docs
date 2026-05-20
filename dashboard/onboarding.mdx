@@ -1,90 +1,174 @@
 ---
-title: "Onboarding"
-description: "Create a tenant, wait for activation, and set up your first app."
+title: "Developer Onboarding"
+description: "From sign-up and custom invitations to creating your first machine application on the TrueParser Control Plane."
 ---
 
-This page describes the current developer onboarding flow for the control plane.
+This page describes the developer onboarding flow. It guides you from creating your organization to using the Developer Dashboard, configuring credentials, and issuing your first machine token.
 
-If your goal is to get from signup to a working backend integration, this is the path to follow.
+---
 
-## 1. Create Your Tenant Account
+## 1. Register a Tenant Account (New Organizations)
 
-Create your tenant account at [dashboard.trueparser.com](https://dashboard.trueparser.com).
+If you are setting up a new organization or business context on the platform, start by registering a **Tenant Account**.
 
-- new tenant registrations start in `Pending Activation`
-- a welcome email is queued after registration
-- the host currently has Google authentication configured for dashboard sign-in
+*   Navigate to [dashboard.trueparser.com](https://dashboard.trueparser.com).
+*   Provide your **Company Name**, **Admin Email Address**, and a secure **Password**.
+*   Upon form submission, the backend initializes your organization's context, pre-warms your asymmetric key material, and schedules your welcome email.
+*   By default, new self-registered tenants are queued in a `Pending Activation` state.
 
-At this point, you have a tenant record, but it is not ready for machine access yet.
+![Tenant Registration Screen](/images/onboarding/tenant-signup.png)
 
-## 2. Wait For Activation
+---
 
-New tenants are activated in a separate step.
+## 2. Wait for Tenant Activation
 
-- when the tenant becomes active, an activation email is sent
-- that email includes the configured platform URL
+To protect platform resources, new tenant applications cannot immediately issue machine-to-machine (M2M) credentials.
 
-Until the tenant is active, tenant apps under that tenant cannot complete normal token issuance.
+Depending on the system's runtime configuration, activation is processed in one of two ways:
+*   **Auto-Activation via Email (GA Flow)**: You will receive an activation email containing a secure token. Clicking the link takes you to the frontend `/activate` page, which validates the token and activates the tenant instantly.
+*   **Manual Activation (Beta Flow)**: A platform administrator verifies your request and manually enables your tenant. 
 
-## 3. Create Your First App
+Once activated, your primary administrator account is enabled, and a billing customer context is established.
 
-Your app is the machine identity your backend or Demo UI will use to request tokens.
+---
+
+## 3. Team Member Invitation & Onboarding (User Account Creation)
+
+If you are joining an existing organization, you **cannot** publicly register. An administrator in your tenant must invite you using the **User Management** screen.
+
+1.  The administrator enters your email and assigns a security role (e.g., `Developer` or `Admin`).
+2.  The backend generates a secure token and queues an invitation email.
+3.  Clicking the link in the invitation email takes you to the **User Account Creation** screen to complete your profile registration.
+
+![User Account Creation Screen](/images/onboarding/user-account-creation.png)
+
+---
+
+## 4. Password Security & Password Resets
+
+If you or a team member forgets a password, use the password reset flow. 
+
+*   Enter your registered email address on the sign-in page to request a reset link.
+*   The system generates a time-limited token and delivers a branded password reset email.
+*   Open the link to load the secure reset page where you can safely apply your new credentials.
+
+<div className="grid grid-cols-2 gap-4">
+  <div>
+    <p className="font-semibold text-center text-sm mb-2">Password Reset Request</p>
+    ![Password Reset Request Screen](/images/onboarding/password-reset-link.png)
+  </div>
+  <div>
+    <p className="font-semibold text-center text-sm mb-2">New Password Entry</p>
+    ![Password Reset Screen](/images/onboarding/password-reset.png)
+  </div>
+</div>
+
+---
+
+## 5. Dashboard Sign-In
+
+Once your tenant is activated or you have successfully registered your user profile via a team invitation, you can sign in to the control plane.
+
+*   Navigate to the sign-in interface at [dashboard.trueparser.com](https://dashboard.trueparser.com).
+*   **Standard Sign-In**: Authenticate securely using your registered Email and Password.
+*   **External Authentication (SSO)**: If your organization uses corporate accounts, select **Sign in with Google** to authenticate via Google SSO (pre-configured at the host level).
+
+![Developer Sign In Screen](/images/onboarding/login.png)
+
+---
+
+## 6. Explore the Developer Dashboard (v1)
+
+Once your account is active and you sign in, you are greeted by the **TrueParser Developer Dashboard (v1)**. This central hub is divided into core navigation tiles and helper sections.
+
+![TrueParser Developer Dashboard](/images/onboarding/dashboard.png)
+
+### The Core Management Tiles:
+*   **Application Management**: Create, enable/disable, and configure machine identities (Apps) for your backends.
+*   **User Management**: Invite team members, track invitation status (e.g., `Pending`, `Accepted`, `Expired`), and manage role assignments.
+*   **Set Up Profile**: Configure your personal user details and security parameters.
+*   **Billing**: View your current subscription level and assigned plan quotas.
+
+### Utility Panels & System Info:
+*   **Recent Jobs**: Monitor recent document-parsing tasks, status outputs (`Success`, `Failed`), and processing statistics.
+*   **Documentation Portal**: Quick links to developers' guides, API contracts, and integration tutorials.
+*   **System Status**: Real-time liveness and readiness status indicator for control plane services and data plane nodes.
+*   **Frequently Asked Questions (FAQ)**: Curated assistance for common setup issues, storage configs, and key rotations.
+
+---
+
+## 7. Create Your First App
+
+An **App** represents a secure confidential client identity that your backend microservices or the Demo UI will use to negotiate OAuth 2.0 access tokens.
 
 <Steps>
-  <Step title="Create The App">
-    Open **Apps** in the dashboard and create a new tenant application.
+  <Step title="Open Application Management">
+    Click the **Application Management** tile on your dashboard and select **Create App**.
   </Step>
-  <Step title="Choose A Region">
-    Select a valid license region. The backend resolves the region and stamps the app with the region and database metadata it needs later.
+  <Step title="Select a License Region">
+    Choose a valid deployment region (e.g., `aws-us-east-1`). The backend resolves this to the closest active database shard and stamps your app record with a `DbCode`.
   </Step>
-  <Step title="Add Allowed Domains">
-    Optionally add up to three allowed domains such as `localhost:3000` or `api.example.com`.
+  <Step title="Add Allowed Domains (Optional)">
+    You can specify up to three allowed domains (e.g., `localhost:3000` or `api.acme.com`). The control plane normalizes these URLs and includes them as security claims in your issued JWTs.
   </Step>
-  <Step title="Save Credentials">
-    Capture the generated `client_id` and plaintext `client_secret` returned at creation time.
+  <Step title="Secure Your Plaintext Secret">
+    Upon creation, the dashboard will display your `client_id` and a one-time plaintext `client_secret`.
   </Step>
 </Steps>
 
 <Warning>
-  The plaintext `client_secret` is shown only once when the app is created. If you lose it, regenerate the secret from the dashboard. The regenerated secret is also shown only once, and the old secret is invalidated.
+  **The `client_secret` is only shown once.** Save it securely in your backend secret manager (like Infiscal, AWS Secrets Manager, or HashiCorp Vault). If you lose it, you must regenerate it from the dashboard, which immediately invalidates the old credential.
 </Warning>
 
-## 4. Optional: Set Up Storage Or Demo Testing
+---
 
-If your tenant uses its own S3-compatible storage, configure it on the app before going live.
+## 8. Optional: Connect Custom S3 Storage
 
-- storage is configured per app
-- the platform uses your stored storage credentials on your behalf
-- your app still retrieves results through the API
+By default, TrueParser securely manages parsed document artifacts. If your business rules or compliance guidelines require data residency within your own boundary:
 
-If you are testing manually, connect the Demo UI to this app and upload sample documents there.
+1.  Open your App settings in the dashboard.
+2.  Provide your S3-compatible credentials (supports **AWS S3**, **Tigris**, **Cloudflare R2**, **MinIO**, and **Backblaze B2**).
+3.  The control plane encrypts these credentials with a master key and uses them on your behalf to write parser outputs directly to your bucket.
 
-## 5. Understand The Required App State
+---
 
-For a tenant app to issue tokens successfully:
+## 9. Assign a Plan for Entitlement Quotas
 
-1. the app must be enabled
-2. the tenant must be active
-3. the app must have a license region
-4. the app must have a stamped database code
+Although applications can negotiate basic access tokens without an explicitly assigned plan, plan assignments govern your usage boundaries:
 
-## 6. Assign A Plan If You Need Quotas
+*   **No Plan Assigned**: Tokens are successfully issued, but they lack the `entitlements` claim.
+*   **Active Plan Assigned**: Access tokens are stamped with `entitlements` containing your allowed Document Units and feature flags.
+*   **Retired Plan Assigned**: Access tokens are immediately blocked at the server level.
 
-Plans are optional for token issuance, but they matter if your backend depends on the `entitlements` claim.
+<Note>
+  **Beta Quota Rule**: During the beta period, paid tiers are feature-gated. Tenants can assign a single free plan to **only one app** at a time.
+</Note>
 
-- no plan assigned: token can still be issued, but no `entitlements` claim is added
-- usable plan assigned: token includes `entitlements` in Document Units and feature flags
-- retired plan assigned: token issuance is blocked
+---
 
-Free plans can be assigned directly, but only one app per tenant can use a free plan.
+## 10. Request Your First Token from the Backend
 
-## 7. Use The App Credentials From Your Backend
+Now that your tenant is active, your admin account is configured, and your app is created, your backend can call the token endpoint using the OAuth 2.0 `client_credentials` grant.
 
-Once the tenant is active and the app is created, your backend can request a token using `client_credentials`.
+### Example Token Exchange Request:
 
-See:
+```bash
+curl -X POST https://admin-api.trueparser.com/connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "scope=TrueParser.API"
+```
 
-- [Authentication](/dashboard/authentication)
-- [App Setup and Credentials](/dashboard/app-setup)
-- [Demo UI](/dashboard/demo-ui)
-- [Billing](/dashboard/billing)
+The returned JWT access token contains the essential routing claims (`tenantid`, `appId`, `licenseRegionCode`, `dbCode`) along with any plan entitlements needed to start parsing.
+
+---
+
+## Related Documentation
+
+*   [Authentication & Token Model](/dashboard/authentication)
+*   [App Setup & Configuration](/dashboard/app-setup)
+*   [Using the Interactive Demo UI](/dashboard/demo-ui)
+*   [Plan Allocations & Billing](/dashboard/billing)
+*   [Understanding License Regions](/dashboard/license-regions)
