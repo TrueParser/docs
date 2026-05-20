@@ -54,13 +54,13 @@
             "group": "Dashboard",
             "icon": "network-wired",
             "pages": [
-              "dashboard/overview",
-              "dashboard/authentication",
               "dashboard/onboarding",
-              "dashboard/license-regions",
+              "dashboard/overview",
               "dashboard/app-setup",
+              "dashboard/authentication",
               "dashboard/billing",
-              "dashboard/demo-ui"
+              "dashboard/demo-ui",
+              "dashboard/license-regions"
             ]
           },
           {
