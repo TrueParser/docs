@@ -1,5 +1,5 @@
 ---
-title: "Onboarding"
+title: "Developer Onboarding"
 description: "From sign-up and custom invitations to creating your first machine application on the TrueParser Control Plane."
 ---
 
@@ -94,74 +94,6 @@ Once your account is active and you sign in, you are greeted by the **TrueParser
 *   **Documentation Portal**: Quick links to developers' guides, API contracts, and integration tutorials.
 *   **System Status**: Real-time liveness and readiness status indicator for control plane services and data plane nodes.
 *   **Frequently Asked Questions (FAQ)**: Curated assistance for common setup issues, storage configs, and key rotations.
-
----
-
-## 7. Create Your First App
-
-An **App** represents a secure confidential client identity that your backend microservices or the Demo UI will use to negotiate OAuth 2.0 access tokens.
-
-<Steps>
-  <Step title="Open Application Management">
-    Click the **Application Management** tile on your dashboard and select **Create App**.
-  </Step>
-  <Step title="Select a License Region">
-    Choose a valid deployment region (e.g., `aws-us-east-1`). The backend resolves this to the closest active database shard and stamps your app record with a `DbCode`.
-  </Step>
-  <Step title="Add Allowed Domains (Optional)">
-    You can specify up to three allowed domains (e.g., `localhost:3000` or `api.acme.com`). The control plane normalizes these URLs and includes them as security claims in your issued JWTs.
-  </Step>
-  <Step title="Secure Your Plaintext Secret">
-    Upon creation, the dashboard will display your `client_id` and a one-time plaintext `client_secret`.
-  </Step>
-</Steps>
-
-<Warning>
-  **The `client_secret` is only shown once.** Save it securely in your backend secret manager (like Infiscal, AWS Secrets Manager, or HashiCorp Vault). If you lose it, you must regenerate it from the dashboard, which immediately invalidates the old credential.
-</Warning>
-
----
-
-## 8. Optional: Connect Custom S3 Storage
-
-By default, TrueParser securely manages parsed document artifacts. If your business rules or compliance guidelines require data residency within your own boundary:
-
-1.  Open your App settings in the dashboard.
-2.  Provide your S3-compatible credentials (supports **AWS S3**, **Tigris**, **Cloudflare R2**, **MinIO**, and **Backblaze B2**).
-3.  The control plane encrypts these credentials with a master key and uses them on your behalf to write parser outputs directly to your bucket.
-
----
-
-## 9. Assign a Plan for Entitlement Quotas
-
-Although applications can negotiate basic access tokens without an explicitly assigned plan, plan assignments govern your usage boundaries:
-
-*   **No Plan Assigned**: Tokens are successfully issued, but they lack the `entitlements` claim.
-*   **Active Plan Assigned**: Access tokens are stamped with `entitlements` containing your allowed Document Units and feature flags.
-*   **Retired Plan Assigned**: Access tokens are immediately blocked at the server level.
-
-<Note>
-  **Beta Quota Rule**: During the beta period, paid tiers are feature-gated. Tenants can assign a single free plan to **only one app** at a time.
-</Note>
-
----
-
-## 10. Request Your First Token from the Backend
-
-Now that your tenant is active, your admin account is configured, and your app is created, your backend can call the token endpoint using the OAuth 2.0 `client_credentials` grant.
-
-### Example Token Exchange Request:
-
-```bash
-curl -X POST https://admin-api.trueparser.com/connect/token \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials" \
-  -d "client_id=YOUR_CLIENT_ID" \
-  -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "scope=TrueParser.API"
-```
-
-The returned JWT access token contains the essential routing claims (`tenantid`, `appId`, `licenseRegionCode`, `dbCode`) along with any plan entitlements needed to start parsing.
 
 ---
 
