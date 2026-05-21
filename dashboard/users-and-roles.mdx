@@ -42,14 +42,14 @@ Invitations are stateful and governed by precise business rules to prevent stale
 
 | Status | Description | Actionable Rules / Transition |
 | :--- | :--- | :--- |
-| **`Pending`** | The invitation is created and the email is queued. | The token is active. The invitation expires automatically after **24 hours**. |
+| **`Pending`** | The invitation is created and the email is queued. | The token is active. The invitation expires automatically after **72 hours**. |
 | **`Accepted`** | The user clicked the link and completed their password setup. | The token is permanently invalidated. The user is activated. |
-| **`Expired`** | The 24-hour validation window passed before acceptance. | Sign-in is blocked. Admins can click **Resend** to renew the token. |
+| **`Expired`** | The 72-hour validation window passed before acceptance. | Sign-in is blocked. Admins can click **Resend** to renew the token. |
 | **`Cancelled`** | An admin revoked the invitation before it was accepted. | The token is immediately voided. Any click on the link is rejected. |
 | **`Failed`** | The mail server encountered a permanent delivery failure. | The invite is flagged for review. Admins can verify the email and retry. |
 
 <Warning>
-  Outstanding invitations can be cancelled at any time by an administrator. Once cancelled, any attempt to use the invitation token will be rejected by the backend with a `404 Not Found` exception.
+  Outstanding invitations can be cancelled at any time by an administrator. Once cancelled, any attempt to use the invitation token is rejected by the backend as invalid.
 </Warning>
 
 ---
@@ -115,21 +115,21 @@ Use the accordion below to understand exactly what access each permission sphere
 
 Here are three common enterprise role configurations you can set up on your dashboard:
 
-### 💻 The "Developer" Role
+### The Developer Role
 *   **Purpose**: Register backend machine identities and test connections.
 *   **Recommended Permissions**:
     *   `ApplicationManagement.View` / `Create` / `Edit`
     *   `Plans.View`
     *   `ApplicationS3Configs.Create` / `Edit` (to link developer buckets)
 
-### 🔒 The "SecOps" Role
+### The SecOps Role
 *   **Purpose**: Manage system health, liveness parameters, and credentials.
 *   **Recommended Permissions**:
     *   `ApplicationManagement.View`
     *   `SigningKeys.Rotate` (to manage key lifecycle)
     *   `SystemHealth.View`
 
-### 💳 The "Billing Manager" Role
+### The Billing Manager Role
 *   **Purpose**: Update payment methods, addresses, and upgrade quotas.
 *   **Recommended Permissions**:
     *   `Billing.Manage`
@@ -155,3 +155,4 @@ The backend immediately rebuilds the user's security claims. If a user attempts 
 *   [Developer Onboarding Sequence](/dashboard/onboarding)
 *   [Authentication & Token Model](/dashboard/authentication)
 *   [App Setup & Configuration](/dashboard/app-setup)
+
