@@ -1,125 +1,154 @@
 ---
 title: "App Setup and Credentials"
-description: "Create a tenant app, understand the required fields, and manage its credentials safely."
+description: "Create your tenant application, understand required fields, manage credentials, and configure custom storage."
 ---
 
-This page covers tenant application setup in the dashboard.
+This page guides you through creating and configuring a **Tenant Application** within the TrueParser Developer Dashboard. 
 
-Tenant apps are confidential clients for backend services and the Demo UI. They are not intended for browser-only clients.
+A Tenant Application represents an isolated machine identity (client) under your organization. Once set up and assigned a subscription plan, its credentials are used to obtain short-lived secure access tokens to communicate with the high-performance TrueParser Parsing API.
 
-<Note>
-  An app can issue tokens without a plan, but the token will not include the
-  `entitlements` claim. If the app is assigned a retired plan, token issuance
-  is blocked.
-</Note>
+---
 
-<Note>
-  App limits are tenant-scoped. If you need a higher app limit, contact
-  support.
-</Note>
+## The Tenant Application Lifecycle
 
-## What An App Represents
+To get started, navigate to the **Applications** screen from the dashboard's sidebar menu. Here, you can view your active applications, their client IDs, and add new machine clients.
 
-Each app is an isolated machine identity under a tenant.
+![Applications Overview](/images/app-setup/tenant-applications.png)
 
-- it has its own `client_id` and `client_secret`
-- it is tied to one license region at creation time
-- it can have optional S3-compatible storage settings
-- it can be enabled or disabled independently
-- it can optionally have a plan assigned later
+Configuring a new application follows a four-step lifecycle:
 
-## Creation Workflow
+```mermaid
+graph LR
+    Create[1. Create App] --> Configure[2. General Settings]
+    Configure --> Plan[3. Assign Plan]
+    Plan --> Storage[4. Configure Storage]
+```
 
-When you create an app in the dashboard, the backend creates a confidential client for the current tenant.
+---
 
-<Steps>
-  <Step title="Choose A Region">
-    Select a valid license region. The backend validates that the region exists, is active, and has an active region database available.
-  </Step>
-  <Step title="Set A Name">
-    Enter a display name for the app. App names must be unique within the tenant.
-  </Step>
-  <Step title="Add Optional URLs">
-    Redirect and post-logout URLs are optional. If supplied, they must be valid absolute URIs.
-  </Step>
-  <Step title="Add Allowed Domains">
-    You can optionally store up to three allowed domains on the app.
-  </Step>
-  <Step title="Capture Credentials">
-    After creation, the app returns a generated `client_id` and plaintext `client_secret`.
-  </Step>
-</Steps>
+## 1. Create a Tenant Application
+
+
+Click the **Add Application +** button in the top right corner of the Applications list to open the creation modal.
+
+![Create Tenant Application Modal](/images/app-setup/create-tenant-app.png)
+
+Initially, the modal displays the primary creation fields. Provide the following core parameters:
+
+*   **Application Name**: Enter a formal display name for the application (under the `Name` field).
+    <Note>
+        Your application's display name represents your business or organization in formal verification contexts. It should be descriptive (e.g., `Acme Document Parser Production`) rather than a nickname or placeholder.
+    </Note>
+*   **License Region**: Select the geographical region for your application data from the dropdown. 
+    <Tip>
+        License regions are predefined with stable location codes linked to regional Turso database shards. Ensure you choose the region aligned with your data-locality requirements. You can view all available regions and their details in the **Locations** tab (see the [License Regions](/dashboard/license-regions) guide).
+    </Tip>
+
+### Reveal Advanced Settings (Scroll Down)
+
+If you **scroll down within the creation modal**, several advanced options will be revealed:
+
+*   **Status (Enabled / Disabled)**: Choose whether your new application is initialized in an active state (`Enabled`) or is temporarily turned off (`Disabled`) upon creation.
+*   **Allowed Domains (1, 2, and 3)**: You can pre-configure your allowed domains directly inside the creation modal. These are the client application domains permitted to access the YJS/parsing backend (e.g., for browser-based CORS authentication).
+
+Click **Create** to submit the form.
+
+### Capture Your Credentials Safely
+
+Upon successful creation, the dashboard will display a success toast presenting the one-time generated plaintext **Client Secret**.
+
+![Client Secret Generation](/images/app-setup/client-secret.png)
 
 <Warning>
-  App creation fails if the selected region does not have an active region database.
+    **Copy the Client Secret immediately and store it in a secure location (such as a corporate password manager).** 
+    
+    For security reasons, this plaintext secret is only shown once and cannot be retrieved later. If lost, you will have to regenerate the secret, which immediately invalidates the old credential.
 </Warning>
 
-## Optional Storage Configuration
 
-Some tenants connect their own S3-compatible storage backend to an app.
+---
 
-- supported providers include AWS S3, Tigris, Cloudflare R2, MinIO, and Backblaze B2
-- the storage config stores access key, secret key, bucket name, and optional endpoint or region
-- if no custom storage is configured, the platform uses managed storage
-- the platform uses the stored credentials on your behalf
+## 2. General Settings (General Settings Tab)
 
-<Tip>
-  Your application still interacts with the platform API. It does not talk to
-  the underlying bucket directly.
-</Tip>
+After creating your application, click on its name in the Applications list to enter the detailed configuration view. The **General Settings** tab displays the core properties of your machine identity:
 
-## What Gets Stored On The App
+![General Settings Tab](/images/app-setup/tenant-app-general-settings.png)
 
-In addition to the OpenIddict client record, the app stores tenant-specific metadata used during token issuance.
+### Read-Only Identifiers
+To prevent configuration drift and preserve transactional integrity, key parameters are locked upon creation:
+*   **Application Display Name**: Represents your business in proof verification reports (fixed).
+*   **Client ID**: The system-generated unique identifier used as the OAuth2 client identity (fixed).
+*   **License Region**: The geographical boundary where your parsing shard and data reside (fixed).
 
-- `client_id`
-- `client_secret`
-- `LicenseRegionId`
-- `DbCode`
-- `AllowedDomain1`, `AllowedDomain2`, `AllowedDomain3`
-- enabled or disabled state
-- optional `PlanId`
+### Secret Management
+*   **Client Secret**: Masked by default. 
+*   **Regenerate Secret**: If your secret is exposed or lost, click **Regenerate Secret**. This immediately invalidates the previous secret across the platform. Update all backend servers using the old credential with the new plaintext secret instantly to prevent service interruption.
 
-## Allowed Domain Rules
+### Allowed Domains (CORS Constraints)
+You can optionally save up to **three allowed domains** on the application.
+*   **Purpose**: These domains are injected into Cross-Origin Resource Sharing (CORS) headers allowed to use JSON Web Tokens (JWTs) issued by this application.
+*   **Use Case**: Required if you are connecting to the TrueParser Parsing API directly from a browser-based, client-side application (e.g., an in-browser SPA).
+*   **Domain Validation Rules**:
+    *   `http://` and `https://` protocols are automatically stripped.
+    *   Trailing slashes `/` are removed.
+    *   Wildcards are rejected (e.g., `*.domain.com` is invalid).
+    *   `localhost` is allowed (e.g., `localhost:3000`).
 
-Allowed domains are normalized and validated before they are saved.
+---
 
-- `http://` and `https://` are stripped
-- trailing `/` is removed
-- wildcards are rejected
-- `localhost` is allowed, including `localhost:<port>`
-- duplicate domains are rejected
-- ports must be in the valid range
+## 3. Assign a Subscription Plan (Plans Tab)
 
-Examples:
+An application must have an active subscription plan assigned to process files. Based on the selected plan, any access tokens issued to your application carry corresponding **plan entitlements** (e.g., parsing format support, document limits, and retention policy).
 
-- `https://app.example.com/` becomes `app.example.com`
-- `http://localhost:3000/` becomes `localhost:3000`
+Select the **Plans** tab to subscribe your application to a parsing tier:
 
-## Accessing Credentials Later
+![Subscription Plans Tab](/images/app-setup/plans.png)
 
-The dashboard continues to expose app metadata after creation.
+### The Activation Paths
 
-- `client_id` remains available
-- plaintext `client_secret` is shown once at creation time
-- if you regenerate the secret, the new plaintext secret is shown once for that regeneration event
+*   **Free Tier ($0/Month)**: 
+    If you choose the Free tier, the dashboard **skips the payment gateway entirely**. The plan is instantly activated for your application, and you can immediately begin parsing documents.
+*   **Paid Tiers**:
+    Selecting a premium tier triggers a secure checkout flow. You will be prompted to add a credit card and complete the billing checkout before the plan entitlements are applied to your client credentials.
 
-## Regenerating The Secret
+<Note>
+    If an application is assigned a retired plan, token issuance is blocked. Ensure your applications are migrated to active, supported tiers.
+</Note>
 
-If a secret is lost or exposed, regenerate it from the dashboard.
+---
 
-- a new plaintext `client_secret` is generated
-- the old secret stops working immediately
-- every service using the old secret must be updated
+## 4. Configure S3 Storage (Storage Tab)
 
-<Tip>
-  Store the `client_secret` in your own secret manager. Treat it like any other
-  backend credential.
-</Tip>
+By default, files parsed by TrueParser are held in secure, platform-managed storage. However, if your enterprise requires direct data custody and compliance, you can bring your own S3-compatible storage bucket.
 
-## Related Docs
+Navigate to the **Storage** tab to configure custom storage:
 
-- [Authentication](/dashboard/authentication)
-- [License Regions](/dashboard/license-regions)
-- [Demo UI](/dashboard/demo-ui)
-- [Billing](/dashboard/billing)
+![App Storage Setup](/images/app-setup/app-storage-setup.png)
+
+<Warning>
+    **Prerequisite**: You must create the bucket in your S3 provider's console and enable appropriate **Read and Write policies** for the provided access credentials before configuring this tab.
+</Warning>
+
+Provide the following parameters:
+
+*   **Storage Provider**: Choose your provider from the dropdown. Supported platforms include:
+    *   *Cloudflare R2, AWS S3, Tigris, MinIO, and Backblaze B2*.
+*   **Access Key**: The S3 credential access key ID.
+*   **Secret Key**: The S3 credential secret access key.
+*   **Bucket Name**: The exact name of your target S3 bucket.
+*   **Endpoint URL**: The service endpoint URL of your S3 provider.
+*   **Region**: The region code (defaults to auto or `us-east-1` if left blank).
+
+### Reverting to Managed Storage
+
+If you wish to stop hosting files in your private bucket and return to platform-managed secure storage, click the **Delete Storage Provider** button. This will wipe your custom S3 credentials and safely fall back to the platform's global storage.
+
+---
+
+## Next Steps
+
+Now that your application is created, activated with a plan, and optionally configured with custom storage, you are ready to authenticate and process documents:
+
+*   **Token Authentication**: Learn how to use your Client ID and Client Secret to obtain a 15-minute bearer token in the [Authentication Guide](/dashboard/authentication).
+*   **Interactive Testing**: Set up the pre-built parsing demo UI using your credentials in the [Demo UI Tutorial](/dashboard/demo-ui).
+*   **Plan Quotas**: Track your monthly ingestion and document usage in the [Billing & Quotas](/dashboard/billing) reference.
