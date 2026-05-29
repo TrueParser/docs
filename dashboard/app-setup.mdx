@@ -101,7 +101,11 @@ You can optionally save up to **three allowed domains** on the application.
 
 ## 3. Assign a Subscription Plan (Plans Tab)
 
-An application must have an active subscription plan assigned to process files. Based on the selected plan, any access tokens issued to your application carry corresponding **plan entitlements** (e.g., parsing format support, document limits, and retention policy).
+<Warning>
+    **Plan assignment is strictly mandatory to process files.** 
+    
+    While your application can technically request tokens without a plan, those tokens will lack the required **plan entitlements and limits** claims. **The TrueParser Parsing API will strictly reject all document-parsing requests** unless an active subscription plan is assigned to the calling application.
+</Warning>
 
 Select the **Plans** tab to subscribe your application to a parsing tier:
 
@@ -122,7 +126,11 @@ Select the **Plans** tab to subscribe your application to a parsing tier:
 
 ## 4. Configure S3 Storage (Storage Tab)
 
-By default, files parsed by TrueParser are held in secure, platform-managed storage. However, if your enterprise requires direct data custody and compliance, you can bring your own S3-compatible storage bucket.
+<Note>
+    **Bringing your own S3-compatible storage is completely optional.** 
+    
+    If left unconfigured, the platform automatically uses its own secure, high-availability managed global storage to host your parsed files. Configure this tab only if your organization requires direct data custody or compliance constraints.
+</Note>
 
 Navigate to the **Storage** tab to configure custom storage:
 
