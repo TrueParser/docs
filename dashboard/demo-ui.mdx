@@ -1,59 +1,78 @@
 ---
-title: "Demo UI"
-description: "Connect one tenant application to the demo workspace and upload documents for testing."
+title: 'Demo UI'
+description: 'Connect a tenant application to the Interactive Demo UI to test document parsing directly from your browser.'
 ---
 
-The Demo UI is a tenant-facing workspace for trying TrueParser without wiring a backend first.
+The **Interactive Demo UI** is a secure, browser-based sandbox environment that allows you to manually upload files, run parsing operations, and preview structured JSON outputs without writing backend code or wiring up integrations first.
 
-Each demo workspace is connected to one tenant application.
+---
 
-## What You Need
+## What is a Parser Instance?
 
-Before you connect the Demo UI, create a tenant application and copy its credentials.
-
-- `client_id`
-- `client_secret`
-- the app's license region
-- optional storage configuration, if your tenant uses its own S3-compatible bucket
-
-## Connect The Demo UI
-
-<Steps>
-  <Step title="Create An App">
-    Create a tenant application in the dashboard.
-  </Step>
-  <Step title="Copy The Credentials">
-    Copy the app's `client_id` and `client_secret` from the dashboard.
-  </Step>
-  <Step title="Open The Demo UI">
-    Open the Demo UI and paste the credentials for the app you want to test.
-  </Step>
-  <Step title="Save The Connection">
-    Save the connection so the workspace can request tokens for that app.
-  </Step>
-  <Step title="Upload Documents">
-    Upload sample documents and use the workspace to test parsing behavior.
-  </Step>
-</Steps>
+To use the Demo UI, you must configure a **Parser Instance**. A Parser Instance acts as a secure connector between a specific Tenant Application's credentials and the interactive upload space.
 
 <Note>
-  A Demo UI workspace is intentionally tied to one tenant application. If you
-  need a separate test setup, create another app and connect it to a different
-  workspace.
+    **1-to-1 App Mapping**: Each Parser Instance is bound to **exactly one** Tenant Application. A single application cannot be registered under multiple instances simultaneously.
 </Note>
 
-## When To Use It
+You can view your active connections, their assigned subscription plans, and delete instances from the **Parsing Instances** screen:
 
-- quick product demos
-- manual validation before backend integration
-- testing a single tenant app with a known set of credentials
+![Parsing Instances List](/images/demo-ui/parsing-instances.png)
 
-<Tip>
-  The Demo UI is for testing and demos, not for production backend traffic.
-</Tip>
+---
 
-## Related Docs
+## Creating a Parser Instance
 
-- [App Setup and Credentials](/dashboard/app-setup)
-- [Authentication](/dashboard/authentication)
-- [Quickstart](/quickstart)
+Click **Add Instance +** in the top right of the screen to open the creation modal:
+
+![Create Parser Instance Modal](/images/demo-ui/create-parsing-instance.png)
+
+Provide the following credentials:
+
+*   **Display Name**: Enter a custom label to identify this test workspace (e.g., `Invoicing Sandbox`).
+*   **Client ID**: Paste the public system-generated Client ID from your [Application Settings](/dashboard/app-setup).
+*   **Client Secret**: Manually paste the application's Client Secret.
+
+<Warning>
+    **Why Manual Secret Entry is Required**: 
+    To protect your security boundary, the platform does not cache or expose application plaintext secrets in dashboard settings. Manually pasting the secret provides explicit consent for the platform to encrypt and store the secret (AES-encrypted at rest) to request tokens on your behalf.
+</Warning>
+
+Click **Create** to initialize the workspace.
+
+---
+
+## File Upload & Job Monitoring
+
+Once your Parser Instance is created, click its name from the list to enter the upload workspace.
+
+![Upload and Jobs Screen](/images/demo-ui/upload-screen.png)
+
+Click the **Upload File ↑** button in the top right to upload test files (supporting formats such as PDF, EML, and DWG). 
+
+The workspace displays a real-time list of your processing history with the following statuses:
+
+*   `Processing` (Blue): The parser is actively reading and extracting data.
+*   `Completed` (Green): Parsing succeeded. Click the download icon under **Actions** to retrieve the structured output.
+*   `Failed` (Red): Extraction failed.
+*   `Expired` (Gray): The temporary storage period has ended.
+
+---
+
+## The 24-Hour Expiration Policy
+
+To protect data privacy and optimize server performance, the Demo UI enforces a strict retention limit:
+
+<Warning>
+    **All test parsing jobs expire exactly 24 hours after completion.** 
+    
+    Once a job transitions to the `Expired` status, the extracted output is permanently purged from storage, and the download action becomes **permanently disabled**. Ensure you download and evaluate your outputs within this 24-hour window.
+</Warning>
+
+---
+
+## Related Documentation
+
+*   [App Setup & Configuration](/dashboard/app-setup)
+*   [Authentication Token Flow](/dashboard/authentication)
+*   [Plan Allocations & Billing](/dashboard/billing)
