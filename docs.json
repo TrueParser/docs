@@ -83,7 +83,7 @@
               "internals/error-reference",
               "internals/reliability",
               "internals/rate-limits",
-              "security"
+              "internals/security"
             ]
           }
         ]
