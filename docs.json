@@ -46,8 +46,7 @@
             "icon": "rocket-launch",
             "pages": [
               "index",
-              "quickstart",
-              "security"
+              "quickstart"
             ]
           },
           {
@@ -83,7 +82,8 @@
               "internals/plans-and-limits",
               "internals/error-reference",
               "internals/reliability",
-              "internals/rate-limits"
+              "internals/rate-limits",
+              "security"
             ]
           }
         ]
