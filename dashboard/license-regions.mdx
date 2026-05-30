@@ -1,15 +1,15 @@
 ---
 title: "License Regions"
-description: "Understand how license regions govern data residency, where your license and usage data is stored, and how to select region codes for your applications."
+description: "Understand how license regions map apps to usage-metrics storage and how this differs from per-app output storage."
 ---
 
-TrueParser operates a geographically distributed infrastructure to ensure high availability, low processing latency, and strict compliance with local data residency regulations. 
+License Regions in TrueParser are used for license and usage-metrics data mapping.
 
-A **License Region** represents the physical and logical boundary where an organization’s license profiles, usage metrics, and parsing transactional metadata are stored.
+A **License Region** identifies where an application's license-linked usage metadata is stored and routed.
 
 ---
 
-## The License Regions Screen
+## The License Regions screen
 
 You can view all available regions supported by the platform under the **License Regions** section in your dashboard.
 
@@ -17,39 +17,47 @@ You can view all available regions supported by the platform under the **License
 
 This screen serves as a central registry to review active regions and identify their official **Region Codes**. In the details view, you will find:
 
-*   **License Region Name**: The customer-friendly geographic boundary (e.g., `United States`, `Europe`).
-*   **Region Code**: The precise identifier (e.g., `us-east-1`, `eu-central-1`) required when configuring external integrations.
+- **License Region Name**: The customer-friendly region label (for example, `United States`, `Europe`).
+- **Region Code**: The identifier (for example, `us-east-1`, `eu-central-1`) used during application setup.
 
 ---
 
-## Deciding Your Storage & Residency Requirements
+## What license region controls
 
-When creating machine client applications, you must match them with a specific License Region. 
+When creating machine client applications, you must assign one License Region.
 
 <Tip>
-    **Data Custody Selection**: Always select your License Region based on your specific business location, end-user latency requirements, and regional regulatory compliance constraints (such as GDPR in Europe).
+  **Important**: License Region is for license and usage-metrics data routing. It is not your parsed output storage location.
 </Tip>
 
-### How Regions Bind to Applications
+### How regions bind to applications
 
-During the **Application Creation** flow, you are prompted to select an active License Region (as covered in the [App Setup Guide](/dashboard/app-setup)):
+During the **Application Creation** flow, you select an active License Region (as covered in the [App Setup and Config](/dashboard/app-setup)):
 
-1.  **Creation Selection**: You select a predefined region from the dropdown menu (e.g., `Europe`).
-2.  **Infrastructure Routing**: The control plane validates the region selection and automatically maps the application to a dedicated, high-performance regional database cluster located within that region.
-3.  **Data Isolation**: All subsequent documents parsed, access logs generated, and usage quotas consumed by that application are held strictly inside that region's database shard.
-4.  **Token Issuance**: When your backend requests an access token using the app's Client ID and Secret, the resulting JWT carries secure claims identifying the assigned `LicenseRegion` and database router code, allowing the Parsing API to validate permissions locally.
-
----
-
-## Architectural Invariants
-
-*   **Selection is Permanent**: To guarantee transaction history integrity and prevent database routing mismatches, the License Region is set permanently at creation time and **cannot be modified later** on an active application.
-*   **Migrating Regions**: If your organization's storage requirements change or you need to switch database regions, the recommended flow is to create a new application pointing to the target region, configure its S3 bucket, and migrate your API traffic to the new credentials.
+1. **Creation selection**: You select a predefined region from the dropdown.
+2. **Usage routing**: The control plane maps the app to the corresponding regional licensing and usage-metrics data store.
+3. **Token claims**: Access tokens include routing claims such as `licenseRegionCode` and `dbCode`.
+4. **Validation path**: Backend services use these claims to validate usage and entitlement context.
 
 ---
 
-## Related Documentation
+## What license region does not control
 
-*   [App Setup & Credentials](/dashboard/app-setup)
-*   [Authentication Token Flow](/dashboard/authentication)
-*   [Developer Onboarding](/dashboard/onboarding)
+License Region does not define where parsed output files are stored.
+
+Output storage is configured separately per application through storage settings, where you provide your own S3 destination.
+
+---
+
+## Architectural invariants
+
+- **Selection is permanent**: License Region is set at app creation and cannot be edited later on an active app.
+- **Changing region**: If you need a different License Region, create a new app in the target region, configure its S3 storage, then migrate API traffic to the new credentials.
+
+---
+
+## Related documentation
+
+- [App Setup and Config](/dashboard/app-setup)
+- [Authentication](/dashboard/authentication)
+- [Onboarding](/dashboard/onboarding)
