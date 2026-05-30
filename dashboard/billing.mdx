@@ -1,90 +1,75 @@
 ---
-title: "Plans and Billing"
-description: "How plans are assigned to apps and how the billing flow works."
+title: 'Plans and Billing'
+description: 'How subscription plans are assigned to individual applications, billing structures, and beta period policies.'
 ---
 
-Plans are assigned per app.
+Subscription plans govern the document limits, allowed formats, and processing features of your Tenant Applications. 
 
-<Note>
-  No plan assigned: the app can still issue tokens, but no `entitlements`
-  claim is added. Retired plan assigned: token issuance is blocked.
-</Note>
+In TrueParser, subscriptions are managed at the application level rather than the organizational level.
 
-## What Billing Controls
+---
 
-Billing is tied to plan assignment on a tenant app.
+## Per-Application Billing
 
-- free plans can be assigned directly
-- paid plans use the payment provider flow
-- changing plans may either assign immediately or create a billing session, depending on the current app state
+Subscriptions are bound to **individual applications**, not to the tenant overall. 
 
-## Assigning Or Changing A Plan
+*   **Individual Plans**: Every application you create requires its own active subscription plan to obtain tokens and parse documents.
+*   **Separate Invoices**: Because plans are assigned per application, **billing and invoicing are calculated and generated separately for each individual app**. This allows you to easily isolate and allocate costs between different projects, teams, or environments (e.g., staging vs. production).
 
-Plan changes are initiated from the dashboard and applied to a specific app.
+---
 
-### Backend Flow
+## Subscription Plans Screen
 
-1. load the target plan
-2. validate that the target plan can be assigned
-3. load the app's current plan and subscription state
-4. decide whether the change is direct or requires billing
+You can view, assign, or upgrade plans from the **Plans** tab of any application details page.
 
-## Free And Paid Plan Behavior
+![Subscription Plans Card](/images/billing/plans.png)
 
-### Free Plans
+---
 
-Free plans can be assigned directly without a checkout session.
+## Beta Period Policies & Limitations
 
-If the app already has a paid subscription, the backend cancels that subscription and updates the app state before completing the free-plan assignment.
+To help you test and integrate TrueParser, the platform is currently operating in an active beta period. Special rules apply during this phase:
 
-Only one app per tenant can use a free plan.
+*   **Beta Free Tier**: During beta, only the **Free Tier ($0/Month)** plan is displayed and available. No credit card or billing details are required.
+*   **One Free App Constraint**: You can assign the Free plan to **only one application** within your organization. If you create additional applications (up to the limit of 3), they will remain unassigned and unable to process documents until paid plans are activated.
 
-### Paid Plans
+<Warning>
+    **Post-Beta Limit Reductions**:
+    The generous usage allocations (such as the 10,000 monthly document limit) displayed on the Free plan card during the beta period are temporary. 
+    
+    Once the beta period concludes, the Free plan will be scaled back to standard, reduced usage limits. Organizations requiring higher volume capacity will need to transition their applications to paid subscription tiers.
+</Warning>
 
-Paid plans use the payment provider flow.
+---
 
-- if the app already has an active paid subscription, the backend requests a plan change on that subscription
-- if the app has no active paid subscription, the backend creates a checkout session
-- the final assignment is completed after the billing flow succeeds
+## Subscription Lifecycle Status
 
-## Subscription Status
+The dashboard tracks the operational state of each application subscription:
 
-The billing flow tracks subscription status on the app.
+| Status | Description |
+| :--- | :--- |
+| **Pending** | Subscription checkout has been initiated but is not yet complete. |
+| **Active** | The subscription is active; credentials are valid and parsing is fully enabled. |
+| **OnHold** | Payment method update or outstanding action is required. Token requests are blocked. |
+| **Failed** | The billing gateway transaction failed. |
+| **Cancelled** | The subscription was terminated. |
+| **Expired** | The subscription has run its course and expired. |
 
-| Status        | Description                                        |
-| :------------ | :------------------------------------------------- |
-| **Pending**   | Billing setup has started but is not complete yet. |
-| **Active**    | The subscription is active.                        |
-| **OnHold**    | Payment method or billing action is required.      |
-| **Failed**    | The billing flow failed.                           |
-| **Cancelled** | The subscription was cancelled.                    |
-| **Expired**   | The subscription expired.                          |
+---
 
-<Info>
-  Treat subscription management as a separate step from enabling, disabling, or
-  deleting an app.
-</Info>
+## Administrative Plan Rules
 
-## Plan Status Rules
+The control plane maintains plan lifecycle policies to ensure deprecated tiers do not cause system drag:
 
-The backend treats plan status differently depending on the operation.
+*   **Active Plans**: Tiers currently available for selection.
+*   **Draft Plans**: Under host configuration; hidden from tenants.
+*   **Archived Plans**: Retired for new subscribers, but existing applications already carrying the plan can continue to use it.
+*   **Retired Plans**: Completely deactivated. **Any application still carrying a retired plan is immediately blocked from token issuance** and must migrate to an active tier.
 
-- `Active` plans can be assigned
-- `Draft` plans cannot be assigned
-- `Archived` plans cannot be assigned to a new app
-- `Retired` plans block token issuance for apps that still use them
+---
 
-## Developer Notes
+## Related Documentation
 
-For setup and troubleshooting, these are the most important rules:
-
-- assign a usable plan if you need the `entitlements` claim
-- keep only one app per tenant on a free plan
-- expect billing flow only for paid plans
-- if a paid app becomes `OnHold`, billing action is required before normal changes continue
-
-## Related Docs
-
-- [Onboarding](/dashboard/onboarding)
-- [Authentication](/dashboard/authentication)
-- [App Setup and Credentials](/dashboard/app-setup)
+*   [Developer Onboarding](/dashboard/onboarding)
+*   [Authentication Token Model](/dashboard/authentication)
+*   [App Setup & Configuration](/dashboard/app-setup)
