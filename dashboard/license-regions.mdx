@@ -1,50 +1,55 @@
 ---
 title: "License Regions"
-description: "How license regions are validated and used when tenant apps are created."
+description: "Understand how license regions govern data residency, where your license and usage data is stored, and how to select region codes for your applications."
 ---
 
-You must select a license region when you create a tenant app.
+TrueParser operates a geographically distributed infrastructure to ensure high availability, low processing latency, and strict compliance with local data residency regulations. 
 
-A license region is a host-managed record identified by a region code. It is used during app creation to resolve the region-specific database metadata the app needs later for token issuance.
+A **License Region** represents the physical and logical boundary where an organization’s license profiles, usage metrics, and parsing transactional metadata are stored.
 
-## What Happens During App Creation
+---
 
-At app creation time, the backend:
+## The License Regions Screen
 
-1. validates that the region code exists
-2. checks that the region is active
-3. loads the active region database for that region
-4. stamps the app with both `LicenseRegionId` and `DbCode`
+You can view all available regions supported by the platform under the **License Regions** section in your dashboard.
 
-## Why This Matters
+![License Regions Screen](/images/license-region/license-regions.png)
 
-License region data is part of the token issuance path for tenant apps.
+This screen serves as a central registry to review active regions and identify their official **Region Codes**. In the details view, you will find:
 
-- token issuance requires a license region
-- token issuance also requires the stamped `DbCode`
-- `licenseRegionCode` is added to the access token
-- `dbCode` is added to the access token
-- the selected region is used to choose the database where the app's license and usage data is stored
+*   **License Region Name**: The customer-friendly geographic boundary (e.g., `United States`, `Europe`).
+*   **Region Code**: The precise identifier (e.g., `us-east-1`, `eu-central-1`) required when configuring external integrations.
 
-## When App Creation Fails
+---
 
-App creation fails if:
+## Deciding Your Storage & Residency Requirements
 
-- the region code does not exist
-- the region is inactive
-- the region has no active region database
+When creating machine client applications, you must match them with a specific License Region. 
 
-## Can The Region Be Changed Later
+<Tip>
+    **Data Custody Selection**: Always select your License Region based on your specific business location, end-user latency requirements, and regional regulatory compliance constraints (such as GDPR in Europe).
+</Tip>
 
-<Warning>
-  The current tenant app update flow does not expose license region changes. In
-  practice, treat region selection as a create-time decision.
-</Warning>
+### How Regions Bind to Applications
 
-If you need a different region, the safe path is to create a new app with the target region and move traffic to the new credentials.
+During the **Application Creation** flow, you are prompted to select an active License Region (as covered in the [App Setup Guide](/dashboard/app-setup)):
 
-## Related Docs
+1.  **Creation Selection**: You select a predefined region from the dropdown menu (e.g., `Europe`).
+2.  **Infrastructure Routing**: The control plane validates the region selection and automatically maps the application to a dedicated, high-performance regional database cluster located within that region.
+3.  **Data Isolation**: All subsequent documents parsed, access logs generated, and usage quotas consumed by that application are held strictly inside that region's database shard.
+4.  **Token Issuance**: When your backend requests an access token using the app's Client ID and Secret, the resulting JWT carries secure claims identifying the assigned `LicenseRegion` and database router code, allowing the Parsing API to validate permissions locally.
 
-- [App Setup and Credentials](/dashboard/app-setup)
-- [Authentication](/dashboard/authentication)
-- [Onboarding](/dashboard/onboarding)
+---
+
+## Architectural Invariants
+
+*   **Selection is Permanent**: To guarantee transaction history integrity and prevent database routing mismatches, the License Region is set permanently at creation time and **cannot be modified later** on an active application.
+*   **Migrating Regions**: If your organization's storage requirements change or you need to switch database regions, the recommended flow is to create a new application pointing to the target region, configure its S3 bucket, and migrate your API traffic to the new credentials.
+
+---
+
+## Related Documentation
+
+*   [App Setup & Credentials](/dashboard/app-setup)
+*   [Authentication Token Flow](/dashboard/authentication)
+*   [Developer Onboarding](/dashboard/onboarding)
