@@ -58,8 +58,8 @@
               "dashboard/onboarding",
               "dashboard/users-and-roles",
               "dashboard/app-setup",
-              "dashboard/license-regions",
               "dashboard/authentication",
+              "dashboard/license-regions",
               "dashboard/billing",
               "dashboard/demo-ui"
               
